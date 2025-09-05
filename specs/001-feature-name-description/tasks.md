@@ -82,11 +82,11 @@
 ## フェーズ 3.4: コアサービス実装
 
 ### 動画処理サービス
-- [ ] T025 src/services/__init__.py でサービスパッケージ初期化
-- [ ] T026 src/services/video_processor.py でVideoProcessor実装（OpenCV、フレーム抽出、シーンチェンジ検出）
-- [ ] T027 src/services/face_detector.py でFaceDetector実装（MediaPipe、バッチ処理、設定調整）
-- [ ] T027 src/services/diversity_selector.py でDiversitySelector実装（ORB特徴量、K-means、多様性スコア）
-- [ ] T028 src/services/thumbnail_extractor.py でThumbnailExtractor実装（リサイズ、切り抜き、PNG保存）
+- [x] T025 src/services/__init__.py でサービスパッケージ初期化
+- [x] T026 src/services/video_processor.py でVideoProcessor実装（OpenCV、フレーム抽出、シーンチェンジ検出）
+- [x] T027a src/services/face_detector.py でFaceDetector実装（MediaPipe、バッチ処理、設定調整）
+- [x] T027b src/services/diversity_selector.py でDiversitySelector実装（ORB特徴量、K-means、多様性スコア）
+- [x] T028 src/services/thumbnail_extractor.py でThumbnailExtractor実装（リサイズ、切り抜き、PNG保存）
 
 ### ユーティリティライブラリ
 - [ ] T029 [P] src/lib/__init__.py でライブラリパッケージ初期化  
