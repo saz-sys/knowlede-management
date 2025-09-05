@@ -1,9 +1,23 @@
 """
-動画サムネイル抽出機能
+動画サムネイル抽出アプリケーション
 
-社内非エンジニア向けのデスクトップアプリケーションで、
-MP4動画からキャラクターの顔が写った複数のサムネイルをPNG形式で抽出する。
+AIを活用した多様なサムネイル抽出機能を提供するデスクトップアプリケーション。
+ローカル環境での安全な処理とユーザーフレンドリーなインターフェースを特徴とします。
 """
 
 __version__ = "1.0.0"
-__author__ = "Video Thumbnail Extractor Team"
+__author__ = "s-anzai"
+__description__ = "動画サムネイル抽出デスクトップアプリケーション"
+
+# パッケージメタデータ
+__all__ = [
+    "__version__",
+    "__author__", 
+    "__description__",
+]
+
+# 主要モジュールの再エクスポート
+from .models import *
+from .services import *
+from .gui import *
+from .lib import *
