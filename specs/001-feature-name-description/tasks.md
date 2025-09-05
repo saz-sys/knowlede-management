@@ -51,17 +51,17 @@
 **重要: これらのテストは実装前に書かれ、失敗しなければならない**
 
 ### 契約テスト [P]
-- [ ] T006 [P] tests/contract/test_video_processor_contract.py でVideoProcessor契約テスト
-- [ ] T007 [P] tests/contract/test_face_detector_contract.py でFaceDetector契約テスト  
-- [ ] T008 [P] tests/contract/test_thumbnail_extractor_contract.py でThumbnailExtractor契約テスト
-- [ ] T009 [P] tests/contract/test_gui_interface_contract.py でGUIインターフェース契約テスト
+- [x] T006 [P] tests/contract/test_video_processor_contract.py でVideoProcessor契約テスト
+- [x] T007 [P] tests/contract/test_face_detector_contract.py でFaceDetector契約テスト  
+- [x] T008 [P] tests/contract/test_thumbnail_extractor_contract.py でThumbnailExtractor契約テスト
+- [x] T009 [P] tests/contract/test_gui_interface_contract.py でGUIインターフェース契約テスト
 
 ### 統合テスト [P]
-- [ ] T010 [P] tests/integration/test_video_processing_pipeline.py で動画読み込み→フレーム抽出の統合テスト
-- [ ] T011 [P] tests/integration/test_face_detection_integration.py でフレーム→顔検出の統合テスト
-- [ ] T012 [P] tests/integration/test_thumbnail_extraction_e2e.py で全体フロー（動画→サムネイル）のE2Eテスト
-- [ ] T013 [P] tests/integration/test_cli_workflow.py でCLIコマンドの統合テスト
-- [ ] T014 [P] tests/integration/test_gui_workflow.py でGUIアプリケーションの統合テスト
+- [x] T010 [P] tests/integration/test_video_processing_pipeline.py で動画読み込み→フレーム抽出の統合テスト
+- [x] T011 [P] tests/integration/test_face_detection_integration.py でフレーム→顔検出の統合テスト
+- [x] T012 [P] tests/integration/test_thumbnail_extraction_e2e.py で全体フロー（動画→サムネイル）のE2Eテスト
+- [x] T013 [P] tests/integration/test_cli_workflow.py でCLIコマンドの統合テスト
+- [x] T014 [P] tests/integration/test_gui_workflow.py でGUIアプリケーションの統合テスト
 
 ## フェーズ 3.3: データモデル実装（テストが失敗している場合のみ）
 

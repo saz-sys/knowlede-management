@@ -69,6 +69,16 @@ def setup_test_environment():
     os.environ.pop("TESTING", None)
 
 
+def pytest_addoption(parser):
+    """pytestコマンドラインオプションの追加"""
+    parser.addoption(
+        "--fast",
+        action="store_true",
+        default=False,
+        help="Skip slow tests"
+    )
+
+
 def pytest_configure(config):
     """pytest設定の初期化"""
     config.addinivalue_line(
@@ -85,6 +95,9 @@ def pytest_configure(config):
     )
     config.addinivalue_line(
         "markers", "slow: Tests that take a long time to run"
+    )
+    config.addinivalue_line(
+        "markers", "gui: GUI tests requiring display environment"
     )
 
 
