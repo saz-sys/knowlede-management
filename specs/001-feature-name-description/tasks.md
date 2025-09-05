@@ -93,54 +93,48 @@
 - [ ] T030 [P] src/lib/config.py で設定管理（ファイル読み書き、デフォルト値）
 - [ ] T031 [P] src/lib/errors.py でカスタム例外クラス定義
 
-## フェーズ 3.5: CLI実装
-- [ ] T032 src/cli/__init__.py でCLIパッケージ初期化
-- [ ] T033 src/cli/main.py でCLIエントリーポイント（argparse、extract、--helpコマンド）
-
-## フェーズ 3.6: GUI実装
+## フェーズ 3.5: GUI実装
 
 ### GUI基盤
-- [ ] T034 src/gui/__init__.py でGUIパッケージ初期化
-- [ ] T035 src/gui/main_window.py でメインウィンドウ実装（tkinter、ファイル選択、進捗表示）
-- [ ] T036 src/gui/settings_dialog.py で設定ダイアログ実装（サイズ・枚数入力、バリデーション）
-- [ ] T037 src/gui/thumbnail_grid.py でサムネイル表示グリッド実装（PIL表示、選択機能）
+- [ ] T032 src/gui/__init__.py でGUIパッケージ初期化
+- [ ] T033 src/gui/main_window.py でメインウィンドウ実装（tkinter、ファイル選択、進捗表示）
+- [ ] T034 src/gui/settings_dialog.py で設定ダイアログ実装（サイズ・枚数入力、バリデーション）
+- [ ] T035 src/gui/thumbnail_grid.py でサムネイル表示グリッド実装（PIL表示、選択機能）
 
 ### 非同期処理
-- [ ] T038 src/gui/async_worker.py で非同期ワーカー実装（threading、進捗コールバック）
+- [ ] T036 src/gui/async_worker.py で非同期ワーカー実装（threading、進捗コールバック）
 
-## フェーズ 3.7: 統合・最適化
-- [ ] T039 サービス層をCLIに統合（エラーハンドリング、進捗表示）
-- [ ] T040 サービス層をGUIに統合（非同期処理、リアルタイム更新）
-- [ ] T041 パフォーマンス最適化（メモリ管理、並列処理、ガベージコレクション調整）
-- [ ] T042 エラーハンドリング強化（ユーザーフレンドリーメッセージ、ログ出力）
+## フェーズ 3.6: 統合・最適化
+- [ ] T037 サービス層をGUIに統合（非同期処理、リアルタイム更新）
+- [ ] T038 パフォーマンス最適化（メモリ管理、並列処理、ガベージコレクション調整）
+- [ ] T039 エラーハンドリング強化（ユーザーフレンドリーメッセージ、ログ出力）
 
-## フェーズ 3.8: 仕上げ
+## フェーズ 3.7: 仕上げ
 
 ### ユニットテスト [P]  
-- [ ] T043 [P] tests/unit/test_video_processor.py でVideoProcessorのユニットテスト
-- [ ] T044 [P] tests/unit/test_face_detector.py でFaceDetectorのユニットテスト
-- [ ] T045 [P] tests/unit/test_thumbnail_extractor.py でThumbnailExtractorのユニットテスト
-- [ ] T046 [P] tests/unit/test_diversity_selector.py でDiversitySelectorのユニットテスト
-- [ ] T047 [P] tests/unit/test_models.py で全データモデルのユニットテスト
-- [ ] T048 [P] tests/unit/test_cli.py でCLIコマンドのユニットテスト
+- [ ] T040 [P] tests/unit/test_video_processor.py でVideoProcessorのユニットテスト
+- [ ] T041 [P] tests/unit/test_face_detector.py でFaceDetectorのユニットテスト
+- [ ] T042 [P] tests/unit/test_thumbnail_extractor.py でThumbnailExtractorのユニットテスト
+- [ ] T043 [P] tests/unit/test_diversity_selector.py でDiversitySelectorのユニットテスト
+- [ ] T044 [P] tests/unit/test_models.py で全データモデルのユニットテスト
 
 ### パフォーマンス・品質テスト
-- [ ] T049 tests/performance/test_processing_speed.py でパフォーマンステスト（10分動画30秒以内処理）
-- [ ] T050 tests/performance/test_memory_usage.py でメモリ使用量テスト（2GB以内）
-- [ ] T051 テストサンプル動画作成（30秒短尺、5分長尺、エッジケース動画）
+- [ ] T045 tests/performance/test_processing_speed.py でパフォーマンステスト（10分動画30秒以内処理）
+- [ ] T046 tests/performance/test_memory_usage.py でメモリ使用量テスト（2GB以内）
+- [ ] T047 テストサンプル動画作成（30秒短尺、5分長尺、エッジケース動画）
 
 ### ドキュメント・配布準備 [P]
-- [ ] T052 [P] llms.txt でAI開発者向けドキュメント作成
-- [ ] T053 [P] README.md でユーザー向けドキュメント作成  
-- [ ] T054 [P] requirements.txt で依存関係バージョン固定
-- [ ] T055 [P] setup.py でパッケージング設定
-- [ ] T056 [P] .gitignore で適切なファイル除外設定
+- [ ] T048 [P] llms.txt でAI開発者向けドキュメント作成
+- [ ] T049 [P] README.md でユーザー向けドキュメント作成  
+- [ ] T050 [P] requirements.txt で依存関係バージョン固定
+- [ ] T051 [P] setup.py でパッケージング設定
+- [ ] T052 [P] .gitignore で適切なファイル除外設定
 
 ### 検証・クリーンアップ
-- [ ] T057 quickstart.md の手順実行とテストシナリオ検証
-- [ ] T058 重複コード削除、コード品質向上
-- [ ] T059 全テスト実行、カバレッジ確認
-- [ ] T060 デバッグログ削除、本番用設定
+- [ ] T053 quickstart.md の手順実行とテストシナリオ検証
+- [ ] T054 重複コード削除、コード品質向上
+- [ ] T055 全テスト実行、カバレッジ確認
+- [ ] T056 デバッグログ削除、本番用設定
 
 ## 依存関係
 
