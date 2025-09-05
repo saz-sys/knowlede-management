@@ -19,7 +19,7 @@ sys.path.insert(0, str(project_root))
 
 from src.lib import get_logger, get_config, ThumbnailExtractionError
 from src.models import VideoFile, UserSettings, Thumbnail
-from src.gui import MainWindow, ThumbnailGrid, SettingsDialog, init_gui_environment
+from src.gui import MainWindow, SettingsDialog
 from src.gui.async_worker import create_worker, thumbnail_extraction_worker
 from src.services import VideoProcessor, FaceDetector, DiversitySelector, ThumbnailExtractor
 
@@ -33,15 +33,12 @@ class ThumbnailExtractionApp:
         self.logger = get_logger(__name__)
         self.config = get_config()
         
-        # GUI環境初期化
-        self.root = init_gui_environment()
+        # メインウィンドウ作成（ここで唯一の Tk を生成）
+        self.main_window = MainWindow()
+        self.root = self.main_window.root
         self.root.title("動画サムネイル抽出")
         
-        # メインウィンドウ作成
-        self.main_window = MainWindow(self.root)
-        
-        # サムネイルグリッド作成
-        self.thumbnail_grid = ThumbnailGrid(self.root)
+        # グリッドは MainWindow 内で管理
         
         # 非同期ワーカー
         self.worker = create_worker("thumbnail_extraction")
@@ -64,6 +61,7 @@ class ThumbnailExtractionApp:
         self.main_window.on_video_selected = self._on_video_selected
         self.main_window.on_extraction_start = self._on_extraction_start
         self.main_window.on_settings_changed = self._on_settings_changed
+        self.main_window.on_cancel_requested = self._on_cancel_requested
         
         # ワーカーのコールバック
         self.worker.on_progress = self._on_progress_update
@@ -71,8 +69,7 @@ class ThumbnailExtractionApp:
         self.worker.on_error = self._on_extraction_error
         self.worker.on_cancelled = self._on_extraction_cancelled
         
-        # サムネイルグリッドのコールバック
-        self.thumbnail_grid.on_selection_changed = self._on_thumbnail_selection_changed
+        # サムネイル選択変更のハンドリング（MainWindowのグリッドから通知予定）
         
         # ウィンドウクローズイベント
         self.root.protocol("WM_DELETE_WINDOW", self._on_closing)
@@ -141,7 +138,8 @@ class ThumbnailExtractionApp:
             
         except Exception as e:
             self.logger.error(f"抽出開始エラー: {e}")
-            self._show_error("抽出開始エラー", str(e))
+            from src.lib.errors import format_error_for_user
+            self._show_error("抽出開始エラー", format_error_for_user(e))
             self.main_window._reset_ui_state()
     
     def _on_settings_changed(self, user_settings: UserSettings):
@@ -204,7 +202,8 @@ class ThumbnailExtractionApp:
         self.logger.error(f"サムネイル抽出エラー: {error}")
         
         # ユーザーフレンドリーなエラーメッセージを生成
-        user_message = self._create_user_friendly_error_message(error)
+        from src.lib.errors import format_error_for_user
+        user_message = format_error_for_user(error)
         self._show_error("サムネイル抽出エラー", user_message)
         
         # UI状態をリセット
@@ -214,6 +213,19 @@ class ThumbnailExtractionApp:
         """サムネイル抽出キャンセル時の処理"""
         self.logger.info("サムネイル抽出がキャンセルされました")
         self.main_window.update_progress(0.0, "キャンセルされました")
+        try:
+            self.main_window._reset_ui_state()
+            self.main_window.status_bar_var.set("キャンセル完了")
+        except Exception:
+            pass
+
+    def _on_cancel_requested(self):
+        """ユーザーからのキャンセル要求を処理"""
+        try:
+            if self.worker and self.worker.is_running():
+                self.worker.cancel()
+        except Exception as e:
+            self.logger.error(f"キャンセル要求処理エラー: {e}")
     
     def _on_thumbnail_selection_changed(self, selected_indices):
         """サムネイル選択変更時の処理"""

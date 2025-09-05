@@ -13,7 +13,7 @@ import logging
 from dataclasses import dataclass
 from enum import Enum
 
-from lib import get_logger
+from ..lib import get_logger
 
 
 class WorkerStatus(Enum):
@@ -463,13 +463,18 @@ def thumbnail_extraction_worker(video_file, user_settings, worker: AsyncWorker):
     try:
         from ..services import VideoProcessor, FaceDetector, DiversitySelector, ThumbnailExtractor
         from ..models import ThumbnailExtractionJob
+        from ..lib.errors import NoFacesDetectedError
         
         # 処理開始
         worker.report_progress(0.0, "動画ファイルを読み込んでいます...")
         
         # VideoProcessorで動画を処理
         video_processor = VideoProcessor()
-        frames = video_processor.extract_frames(video_file)
+        # ユーザー設定のフレーム間隔を反映しつつ、進捗計算のためにリスト化
+        frames = list(video_processor.extract_frames(
+            video_file,
+            interval_seconds=getattr(user_settings, 'frame_interval', 1.0)
+        ))
         
         if worker.check_cancellation():
             return []
@@ -481,23 +486,25 @@ def thumbnail_extraction_worker(video_file, user_settings, worker: AsyncWorker):
         face_detector = FaceDetector()
         
         frames_with_faces = []
+        total_frames = len(frames) if len(frames) > 0 else 1
         for i, frame in enumerate(frames):
             worker.wait_if_paused()
             if worker.check_cancellation():
                 return []
             
-            # 顔検出
-            faces = face_detector.detect_faces([frame])
-            if faces and faces[0]:  # 顔が検出された場合
-                frame.faces_detected = faces[0]
+            # 顔検出（APIは単一Frameを取る）
+            faces = face_detector.detect_faces(frame)
+            if faces:  # 顔が検出された場合
+                # モデルは複数の顔を返す可能性があるためフレームに保持
+                frame.faces_detected = faces
                 frames_with_faces.append(frame)
             
             # 進捗更新
-            progress = 30.0 + (i / len(frames)) * 30.0
+            progress = 30.0 + (i / total_frames) * 30.0
             worker.report_progress(progress, f"顔検出中... ({i+1}/{len(frames)})")
         
         if not frames_with_faces:
-            raise ValueError("顔が検出されたフレームがありません")
+            raise NoFacesDetectedError("顔が検出されたフレームがありません")
         
         worker.report_progress(60.0, f"{len(frames_with_faces)}個のフレームで顔を検出")
         
@@ -519,19 +526,20 @@ def thumbnail_extraction_worker(video_file, user_settings, worker: AsyncWorker):
         thumbnail_extractor = ThumbnailExtractor()
         
         thumbnails = []
+        total_selected = len(selected_frames) if len(selected_frames) > 0 else 1
         for i, frame in enumerate(selected_frames):
             worker.wait_if_paused()
             if worker.check_cancellation():
                 return []
             
-            # サムネイル生成
-            thumbnail = thumbnail_extractor.create_thumbnail(
-                frame, user_settings.output_width, user_settings.output_height
+            # サムネイル生成（正しいAPI名と引数）
+            thumbnail = thumbnail_extractor.generate_thumbnail(
+                frame, user_settings
             )
             thumbnails.append(thumbnail)
             
             # 進捗更新
-            progress = 85.0 + (i / len(selected_frames)) * 15.0
+            progress = 85.0 + (i / total_selected) * 15.0
             worker.report_progress(progress, f"サムネイル生成中... ({i+1}/{len(selected_frames)})")
         
         worker.report_progress(100.0, f"{len(thumbnails)}個のサムネイル生成完了")

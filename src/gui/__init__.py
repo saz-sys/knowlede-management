@@ -80,7 +80,7 @@ def init_gui_environment():
     
     # Tkinter設定
     root = tk.Tk()
-    root.withdraw()  # 初期化時は非表示
+    # 初期化時に非表示にしない（macOSでの可視性問題回避）
     
     # 高DPI対応
     try:
@@ -88,12 +88,42 @@ def init_gui_environment():
     except:
         pass
     
-    # スタイル設定
+    # スタイル設定（macOSではaquaを優先）
     style = ttk.Style()
-    if "vista" in style.theme_names():
-        style.theme_use("vista")
-    elif "clam" in style.theme_names():
-        style.theme_use("clam")
+    try:
+        themes = style.theme_names()
+        # macOSではネイティブの 'aqua' を優先し、無い場合のみ 'clam'
+        if sys.platform == "darwin" and "aqua" in themes:
+            style.theme_use("aqua")
+        elif "clam" in themes:
+            style.theme_use("clam")
+        elif "vista" in themes:
+            style.theme_use("vista")
+    except Exception:
+        pass
+    
+    # ベース背景色/前景色を設定（ダークモード等で文字が見えない問題の回避）
+    try:
+        root.configure(bg=GUI_COLORS["background"])
+        style.configure("TFrame", background=GUI_COLORS["background"]) 
+        style.configure("TLabelframe", background=GUI_COLORS["background"]) 
+        style.configure("TLabelframe.Label", foreground=GUI_COLORS["text_primary"], background=GUI_COLORS["background"]) 
+        style.configure("TLabel", foreground=GUI_COLORS["text_primary"], background=GUI_COLORS["background"]) 
+        style.configure("TButton", foreground=GUI_COLORS["text_primary"], background=GUI_COLORS["surface"]) 
+        style.configure("TNotebook", background=GUI_COLORS["background"]) 
+        style.configure("TNotebook.Tab", foreground=GUI_COLORS["text_primary"]) 
+        style.configure("TEntry", fieldbackground=GUI_COLORS["surface"], foreground=GUI_COLORS["text_primary"]) 
+        style.configure("TCombobox", fieldbackground=GUI_COLORS["surface"], foreground=GUI_COLORS["text_primary"], background=GUI_COLORS["surface"]) 
+        style.configure("TSpinbox", fieldbackground=GUI_COLORS["surface"], foreground=GUI_COLORS["text_primary"], background=GUI_COLORS["surface"]) 
+        style.configure("Horizontal.TProgressbar", background=GUI_COLORS["primary"]) 
+
+        # ボタンの状態ごとの色
+        style.map("TButton",
+            foreground=[("disabled", GUI_COLORS["text_secondary"])],
+            background=[("active", GUI_COLORS["secondary"])]
+        )
+    except Exception:
+        pass
     
     return root
 
@@ -110,8 +140,8 @@ def get_config(config_name: str, fallback=None):
     return GUI_CONFIG.get(config_name, fallback)
 
 
-# 循環インポート回避のため、最後にインポート
-from gui.main_window import MainWindow
-from gui.settings_dialog import SettingsDialog
-from gui.thumbnail_grid import ThumbnailGrid
-from gui.async_worker import AsyncWorker
+# 循環インポート回避のため、最後にインポート（相対インポート）
+from .main_window import MainWindow
+from .settings_dialog import SettingsDialog
+from .thumbnail_grid import ThumbnailGrid
+from .async_worker import AsyncWorker

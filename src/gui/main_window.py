@@ -12,9 +12,10 @@ from typing import Optional, Callable, List
 import logging
 import threading
 
-from models import VideoFile, UserSettings, ThumbnailExtractionJob
-from lib import get_logger, get_config, ValidationError
-from gui import get_gui_font, get_color, get_config as get_gui_config
+from ..models import VideoFile, UserSettings, ThumbnailExtractionJob, ThumbnailOrientation
+from ..lib import get_logger, get_config, ValidationError
+from . import get_gui_font, get_color, get_config as get_gui_config
+from .thumbnail_grid import ThumbnailGrid
 
 
 class MainWindow:
@@ -47,17 +48,25 @@ class MainWindow:
         self.current_video: Optional[VideoFile] = None
         self.current_job: Optional[ThumbnailExtractionJob] = None
         self.is_processing = False
+        self._welcome_drawn = False
         
         # コールバック関数
         self.on_video_selected: Optional[Callable[[VideoFile], None]] = None
         self.on_extraction_start: Optional[Callable[[UserSettings], None]] = None
         self.on_settings_changed: Optional[Callable[[UserSettings], None]] = None
+        self.on_cancel_requested: Optional[Callable[[], None]] = None
         
         # GUI構築
         self._setup_menu()
         self._setup_main_frame()
         self._setup_status_bar()
         self._setup_keyboard_shortcuts()
+        # 初期表示（ウェルカムメッセージ）をここで確定させる
+        try:
+            self._show_welcome_message()
+            self.root.update_idletasks()
+        except Exception:
+            pass
         
         self.logger.info("メインウィンドウ初期化完了")
     
@@ -91,11 +100,15 @@ class MainWindow:
         # メインコンテナ
         main_container = ttk.Frame(self.root, padding="10")
         main_container.grid(row=0, column=0, sticky="nsew")
+        # 参照保持（最小UIテストで一時的に非表示化するため）
+        self.main_container = main_container
         
         # グリッド重み設定
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(0, weight=1)
         main_container.columnconfigure(1, weight=1)
+        # 右パネルは row=0 を主に使用するため両方に weight を設定
+        main_container.rowconfigure(0, weight=1)
         main_container.rowconfigure(1, weight=1)
         
         # 左側パネル（操作エリア）
@@ -109,6 +122,8 @@ class MainWindow:
         control_frame = ttk.LabelFrame(parent, text="操作", padding="10")
         control_frame.grid(row=0, column=0, rowspan=2, sticky="nsew", padx=(0, 5))
         control_frame.columnconfigure(0, weight=1)
+        # デバッグ用に参照を保持
+        self.control_frame = control_frame
         
         # 動画ファイル選択
         video_frame = ttk.LabelFrame(control_frame, text="動画ファイル", padding="5")
@@ -148,10 +163,27 @@ class MainWindow:
         height_spin = ttk.Spinbox(settings_frame, from_=240, to=4096, width=10,
                                 textvariable=self.height_var)
         height_spin.grid(row=2, column=1, sticky="ew", padx=(5, 0), pady=2)
+
+        # サムネイル形式（縦/横/自動）
+        ttk.Label(settings_frame, text="サムネイル形式:").grid(row=3, column=0, sticky="w", pady=2)
+        default_orientation = self.config.get('default_orientation', 'landscape')
+        self.orientation_var = tk.StringVar(value=self._orientation_value_to_label(default_orientation))
+        self.orientation_combo = ttk.Combobox(
+            settings_frame,
+            state="readonly",
+            values=[
+                self._orientation_value_to_label('landscape'),
+                self._orientation_value_to_label('portrait'),
+                self._orientation_value_to_label('auto')
+            ],
+            textvariable=self.orientation_var
+        )
+        self.orientation_combo.grid(row=3, column=1, sticky="ew", padx=(5, 0), pady=2)
+        self.orientation_combo.bind('<<ComboboxSelected>>', lambda e: self._notify_settings_changed())
         
         # プリセットボタン
         preset_frame = ttk.Frame(settings_frame)
-        preset_frame.grid(row=3, column=0, columnspan=2, sticky="ew", pady=(5, 0))
+        preset_frame.grid(row=4, column=0, columnspan=2, sticky="ew", pady=(5, 0))
         preset_frame.columnconfigure(0, weight=1)
         preset_frame.columnconfigure(1, weight=1)
         
@@ -194,23 +226,33 @@ class MainWindow:
         preview_frame.grid(row=0, column=1, rowspan=2, sticky="nsew", padx=(5, 0))
         preview_frame.columnconfigure(0, weight=1)
         preview_frame.rowconfigure(0, weight=1)
+        # デバッグ用に参照を保持
+        self.preview_frame = preview_frame
         
-        # スクロール可能なキャンバス
-        canvas_frame = ttk.Frame(preview_frame)
-        canvas_frame.grid(row=0, column=0, sticky="nsew")
-        canvas_frame.columnconfigure(0, weight=1)
-        canvas_frame.rowconfigure(0, weight=1)
+        # スクロール可能なキャンバス（ウェルカム表示用）
+        self.canvas_frame = ttk.Frame(preview_frame)
+        self.canvas_frame.grid(row=0, column=0, sticky="nsew")
+        self.canvas_frame.columnconfigure(0, weight=1)
+        self.canvas_frame.rowconfigure(0, weight=1)
         
-        self.preview_canvas = tk.Canvas(canvas_frame, bg="white")
-        self.preview_scrollbar = ttk.Scrollbar(canvas_frame, orient="vertical", 
+        # 背景色を明示（テーマによるテキスト不可視対策）
+        self.preview_canvas = tk.Canvas(self.canvas_frame, bg= get_color("surface"))
+        self.preview_scrollbar = ttk.Scrollbar(self.canvas_frame, orient="vertical", 
                                              command=self.preview_canvas.yview)
         self.preview_canvas.configure(yscrollcommand=self.preview_scrollbar.set)
         
         self.preview_canvas.grid(row=0, column=0, sticky="nsew")
         self.preview_scrollbar.grid(row=0, column=1, sticky="ns")
         
-        # 初期表示
-        self._show_welcome_message()
+        # サムネイルグリッド（初期は非表示）
+        self.grid_host = ttk.Frame(preview_frame)
+        self.grid_host.grid(row=0, column=0, sticky="nsew")
+        self.grid_host.grid_remove()
+        self.thumbnail_grid = ThumbnailGrid(self.grid_host)
+        
+        # 初期は通常のウェルカム表示を行う（デバッグオーバーレイは使用しない）
+        # 初回レイアウトでの再描画ハンドラ
+        self.preview_canvas.bind('<Configure>', self._on_first_canvas_configure)
         
         # 保存ボタン
         save_frame = ttk.Frame(preview_frame)
@@ -243,6 +285,15 @@ class MainWindow:
     
     def _show_welcome_message(self):
         """ウェルカムメッセージを表示"""
+        # グリッドを隠し、キャンバスを表示
+        try:
+            self.grid_host.grid_remove()
+        except Exception:
+            pass
+        try:
+            self.canvas_frame.grid()
+        except Exception:
+            pass
         self.preview_canvas.delete("all")
         
         canvas_width = self.preview_canvas.winfo_width() or 400
@@ -270,6 +321,16 @@ class MainWindow:
                 text=line, font=get_gui_font(), anchor="center",
                 fill=get_color("text_primary")
             )
+        self._welcome_drawn = True
+
+    def _on_first_canvas_configure(self, event):
+        """キャンバスの初回レイアウト時にウェルカム表示を再描画"""
+        try:
+            if not self._welcome_drawn and self.canvas_frame.winfo_ismapped():
+                self._show_welcome_message()
+        finally:
+            # 一度だけで良いのでバインド解除
+            self.preview_canvas.unbind('<Configure>')
     
     def _open_video_file(self):
         """動画ファイルを開く"""
@@ -342,7 +403,8 @@ class MainWindow:
             settings = UserSettings(
                 thumbnail_count=self.thumbnail_count_var.get(),
                 output_width=self.width_var.get(),
-                output_height=self.height_var.get()
+                output_height=self.height_var.get(),
+                orientation=self._get_selected_orientation()
             )
             
             # UI状態更新
@@ -372,10 +434,20 @@ class MainWindow:
         if not self.is_processing:
             return
         
-        self.logger.info("サムネイル抽出キャンセル")
-        self._reset_ui_state()
-        self.status_var.set("キャンセルされました")
-        self.status_bar_var.set("キャンセル完了")
+        try:
+            self.logger.info("キャンセル要求を送信")
+            # UIをキャンセル中に更新（完了時は on_cancelled で最終更新）
+            self.cancel_button.config(state="disabled")
+            self.status_var.set("キャンセル中...")
+            self.status_bar_var.set("キャンセル要求を送信しました")
+            
+            if self.on_cancel_requested:
+                try:
+                    self.on_cancel_requested()
+                except Exception as e:
+                    self.logger.warning(f"キャンセル要求コールバックエラー: {e}")
+        except Exception as e:
+            self.logger.error(f"キャンセル処理エラー: {e}")
     
     def _reset_ui_state(self):
         """UI状態をリセット"""
@@ -386,8 +458,14 @@ class MainWindow:
     
     def _save_thumbnails(self):
         """選択されたサムネイルを保存"""
-        # ThumbnailGridで実装される選択機能と連携
-        messagebox.showinfo("情報", "サムネイル保存機能は ThumbnailGrid と連携して実装されます。")
+        try:
+            if hasattr(self, 'thumbnail_grid') and self.thumbnail_grid:
+                self.thumbnail_grid.save_selected()
+            else:
+                messagebox.showwarning("警告", "サムネイルが表示されていません。先にサムネイルを生成してください。")
+        except Exception as e:
+            self.logger.error(f"サムネイル保存エラー: {e}")
+            messagebox.showerror("エラー", f"サムネイルの保存に失敗しました:\n{e}")
     
     def _open_settings(self):
         """設定ダイアログを開く"""
@@ -403,6 +481,7 @@ class MainWindow:
             self.thumbnail_count_var.set(self.config.get('default_thumbnail_count', 5))
             self.width_var.set(self.config.get('default_output_width', 1920))
             self.height_var.set(self.config.get('default_output_height', 1080))
+            self.orientation_var.set(self._orientation_value_to_label(self.config.get('default_orientation', 'landscape')))
             
             self.status_bar_var.set("設定をデフォルト値にリセットしました")
             messagebox.showinfo("完了", "設定をデフォルト値にリセットしました。")
@@ -473,31 +552,53 @@ GUIバージョン: {gui_version}
     # パブリックメソッド（外部から呼び出し可能）
     
     def show(self):
-        """ウィンドウを表示"""
-        self.logger.info("show()メソッド開始")
-        
+        """ウィンドウを表示（最小実装）"""
         try:
-            # シンプルな表示
-            self.logger.info("deiconify()実行...")
             self.root.deiconify()
-            self.logger.info("deiconify()完了")
-            
-            # 基本的な前面表示のみ
-            self.logger.info("lift()実行...")
-            self.root.lift()
-            self.logger.info("lift()完了")
-            
-            # 固定サイズと位置で表示
-            self.logger.info("geometry設定...")
-            self.root.geometry("800x600+100+100")
-            self.logger.info("geometry設定完了")
-            
-            self.logger.info("ウィンドウ表示処理完了")
-            
-        except Exception as e:
-            self.logger.error(f"ウィンドウ表示エラー: {e}")
-            import traceback
-            self.logger.error(traceback.format_exc())
+        except Exception:
+            pass
+
+    # 補助メソッド（縦横UI）
+    def _orientation_value_to_label(self, value: str) -> str:
+        """設定値からUI表示ラベルへ変換"""
+        mapping = {
+            'landscape': '横型 (Landscape)',
+            'portrait': '縦型 (Portrait)',
+            'auto': '自動 (Auto)'
+        }
+        return mapping.get(value, '横型 (Landscape)')
+    
+    def _orientation_label_to_value(self, label: str) -> str:
+        """UI表示ラベルから設定値へ変換"""
+        reverse = {
+            '横型 (Landscape)': 'landscape',
+            '縦型 (Portrait)': 'portrait',
+            '自動 (Auto)': 'auto'
+        }
+        return reverse.get(label, 'landscape')
+    
+    def _get_selected_orientation(self) -> ThumbnailOrientation:
+        """選択された向きを取得して列挙型に変換"""
+        value = self._orientation_label_to_value(self.orientation_var.get())
+        if value == 'portrait':
+            return ThumbnailOrientation.PORTRAIT
+        if value == 'auto':
+            return ThumbnailOrientation.AUTO
+        return ThumbnailOrientation.LANDSCAPE
+    
+    def _notify_settings_changed(self):
+        """設定変更を通知"""
+        if self.on_settings_changed:
+            try:
+                settings = UserSettings(
+                    thumbnail_count=self.thumbnail_count_var.get(),
+                    output_width=self.width_var.get(),
+                    output_height=self.height_var.get(),
+                    orientation=self._get_selected_orientation()
+                )
+                self.on_settings_changed(settings)
+            except Exception as e:
+                self.logger.warning(f"設定変更通知エラー: {e}")
     
     def close(self):
         """ウィンドウを閉じる"""
@@ -513,11 +614,29 @@ GUIバージョン: {gui_version}
     
     def set_thumbnails(self, thumbnails: List['Thumbnail']):
         """サムネイル結果を設定"""
-        # ThumbnailGridと連携して実装
-        self.save_button.config(state="normal")
-        self._reset_ui_state()
-        self.status_var.set(f"完了 - {len(thumbnails)}個のサムネイルを生成")
-        self.status_bar_var.set("サムネイル生成完了")
+        try:
+            # キャンバスを隠し、グリッドを表示
+            try:
+                self.canvas_frame.grid_remove()
+            except Exception:
+                pass
+            try:
+                self.grid_host.grid()
+            except Exception:
+                pass
+            
+            # グリッドにサムネイルを設定
+            if hasattr(self, 'thumbnail_grid') and self.thumbnail_grid:
+                self.thumbnail_grid.set_thumbnails(thumbnails)
+            
+            # UI更新
+            self.save_button.config(state="normal")
+            self._reset_ui_state()
+            self.status_var.set(f"完了 - {len(thumbnails)}個のサムネイルを生成")
+            self.status_bar_var.set("サムネイル生成完了")
+        except Exception as e:
+            self.logger.error(f"サムネイル表示エラー: {e}")
+            messagebox.showerror("エラー", f"サムネイルの表示に失敗しました:\n{e}")
     
     def show_error(self, error_message: str):
         """エラーメッセージを表示"""

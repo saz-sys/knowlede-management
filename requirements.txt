@@ -20,3 +20,4 @@ mypy==1.7.1
 # パッケージング
 setuptools==69.0.2
 wheel==0.42.0
+PySimpleGUI==5.0.8.3
