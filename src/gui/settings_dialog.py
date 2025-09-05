@@ -11,8 +11,8 @@ from pathlib import Path
 from typing import Optional, Dict, Any, Callable
 import logging
 
-from ..lib import get_logger, get_config, ConfigPresets, ValidationError
-from . import get_gui_font, get_color, get_config as get_gui_config
+from lib import get_logger, get_config, ConfigPresets, ValidationError
+from gui import get_gui_font, get_color, get_config as get_gui_config
 
 
 class SettingsDialog:

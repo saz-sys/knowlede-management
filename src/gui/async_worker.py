@@ -13,7 +13,7 @@ import logging
 from dataclasses import dataclass
 from enum import Enum
 
-from ..lib import get_logger
+from lib import get_logger
 
 
 class WorkerStatus(Enum):

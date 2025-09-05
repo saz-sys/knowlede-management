@@ -111,7 +111,7 @@ def get_config(config_name: str, fallback=None):
 
 
 # 循環インポート回避のため、最後にインポート
-from .main_window import MainWindow
-from .settings_dialog import SettingsDialog
-from .thumbnail_grid import ThumbnailGrid
-from .async_worker import AsyncWorker
+from gui.main_window import MainWindow
+from gui.settings_dialog import SettingsDialog
+from gui.thumbnail_grid import ThumbnailGrid
+from gui.async_worker import AsyncWorker

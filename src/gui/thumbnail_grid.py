@@ -14,9 +14,9 @@ from PIL import Image, ImageTk
 import io
 import numpy as np
 
-from ..models import Thumbnail
-from ..lib import get_logger, get_config
-from . import get_gui_font, get_color, get_config as get_gui_config
+from models import Thumbnail
+from lib import get_logger, get_config
+from gui import get_gui_font, get_color, get_config as get_gui_config
 
 
 class ThumbnailItem:

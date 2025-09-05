@@ -12,9 +12,9 @@ from typing import Optional, Callable, List
 import logging
 import threading
 
-from ..models import VideoFile, UserSettings, ThumbnailExtractionJob
-from ..lib import get_logger, get_config, ValidationError
-from . import get_gui_font, get_color, get_config as get_gui_config
+from models import VideoFile, UserSettings, ThumbnailExtractionJob
+from lib import get_logger, get_config, ValidationError
+from gui import get_gui_font, get_color, get_config as get_gui_config
 
 
 class MainWindow:
@@ -474,8 +474,30 @@ GUIバージョン: {gui_version}
     
     def show(self):
         """ウィンドウを表示"""
-        self.root.deiconify()
-        self.root.mainloop()
+        self.logger.info("show()メソッド開始")
+        
+        try:
+            # シンプルな表示
+            self.logger.info("deiconify()実行...")
+            self.root.deiconify()
+            self.logger.info("deiconify()完了")
+            
+            # 基本的な前面表示のみ
+            self.logger.info("lift()実行...")
+            self.root.lift()
+            self.logger.info("lift()完了")
+            
+            # 固定サイズと位置で表示
+            self.logger.info("geometry設定...")
+            self.root.geometry("800x600+100+100")
+            self.logger.info("geometry設定完了")
+            
+            self.logger.info("ウィンドウ表示処理完了")
+            
+        except Exception as e:
+            self.logger.error(f"ウィンドウ表示エラー: {e}")
+            import traceback
+            self.logger.error(traceback.format_exc())
     
     def close(self):
         """ウィンドウを閉じる"""

@@ -103,7 +103,7 @@
 
 ### 非同期処理
 - [x] T036 src/gui/async_worker.py で非同期ワーカー実装（threading、進捗コールバック）
-
+実際に動作確認をしたいですがm
 ## フェーズ 3.6: 統合・最適化
 - [x] T037 サービス層をGUIに統合（非同期処理、リアルタイム更新）
 - [x] T038 パフォーマンス最適化（メモリ管理、並列処理、ガベージコレクション調整）
@@ -112,11 +112,11 @@
 ## フェーズ 3.7: 仕上げ
 
 ### ユニットテスト [P]  
-- [ ] T040 [P] tests/unit/test_video_processor.py でVideoProcessorのユニットテスト
-- [ ] T041 [P] tests/unit/test_face_detector.py でFaceDetectorのユニットテスト
-- [ ] T042 [P] tests/unit/test_thumbnail_extractor.py でThumbnailExtractorのユニットテスト
-- [ ] T043 [P] tests/unit/test_diversity_selector.py でDiversitySelectorのユニットテスト
-- [ ] T044 [P] tests/unit/test_models.py で全データモデルのユニットテスト
+- [x] T040 [P] tests/unit/test_video_processor.py でVideoProcessorのユニットテスト
+- [x] T041 [P] tests/unit/test_face_detector.py でFaceDetectorのユニットテスト
+- [x] T042 [P] tests/unit/test_thumbnail_extractor.py でThumbnailExtractorのユニットテスト
+- [x] T043 [P] tests/unit/test_diversity_selector.py でDiversitySelectorのユニットテスト
+- [x] T044 [P] tests/unit/test_models.py で全データモデルのユニットテスト
 
 ### パフォーマンス・品質テスト
 - [ ] T045 tests/performance/test_processing_speed.py でパフォーマンステスト（10分動画30秒以内処理）

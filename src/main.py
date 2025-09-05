@@ -41,7 +41,7 @@ class ThumbnailExtractionApp:
         self.main_window = MainWindow(self.root)
         
         # サムネイルグリッド作成
-        self.thumbnail_grid = ThumbnailGrid(self.main_window.preview_canvas.master)
+        self.thumbnail_grid = ThumbnailGrid(self.root)
         
         # 非同期ワーカー
         self.worker = create_worker("thumbnail_extraction")
@@ -330,7 +330,14 @@ class ThumbnailExtractionApp:
             self.logger.info("アプリケーション開始")
             
             # ウィンドウを表示
+            self.logger.info("ウィンドウ表示を開始...")
             self.main_window.show()
+            self.logger.info("ウィンドウ表示コマンド完了")
+            
+            # メインループを開始
+            self.logger.info("メインループを開始...")
+            self.root.mainloop()
+            self.logger.info("メインループ終了")
             
         except KeyboardInterrupt:
             self.logger.info("ユーザーによる中断")
