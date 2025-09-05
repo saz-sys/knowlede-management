@@ -123,29 +123,13 @@ class ThumbnailExtractor:
             ThumbnailGenerationError: サムネイル生成に失敗
         """
         try:
-            # 元画像を取得
+            # 元画像を取得（サイズ変更せず、元のフレーム解像度を保持）
             source_image = frame.image_data.copy()
-            
-            # 向きに応じた処理
-            if settings.orientation == ThumbnailOrientation.AUTO:
-                # 自動選択（元フレームのアスペクト比を維持）
-                processed_image = self.resize_image(
-                    source_image,
-                    settings.output_width,
-                    settings.output_height,
-                    maintain_aspect_ratio=True
-                )
-            else:
-                # 指定された向きに調整
-                processed_image = self.crop_to_orientation(source_image, settings.orientation.value)
-                processed_image = self.resize_image(
-                    processed_image,
-                    settings.output_width,
-                    settings.output_height,
-                    maintain_aspect_ratio=False
-                )
-            
-            # Thumbnailオブジェクト作成
+
+            # リサイズやクロップは行わず、そのまま使用
+            processed_image = source_image
+
+            # Thumbnailオブジェクト作成（元解像度のまま）
             thumbnail = Thumbnail.create_from_frame(frame, settings, processed_image)
             
             # 品質メトリクス更新

@@ -470,6 +470,16 @@ def thumbnail_extraction_worker(video_file, user_settings, worker: AsyncWorker):
         
         # VideoProcessorで動画を処理
         video_processor = VideoProcessor()
+        # まずロード＆検証を確実に完了させてから処理を開始
+        try:
+            from ..models.video_file import VideoFileStatus
+            if getattr(video_file, 'status', None) != VideoFileStatus.VALID:
+                worker.report_progress(2.0, "動画を検証しています...")
+                video_file = video_processor.load_video(video_file.file_path)
+        except Exception:
+            # 検証に失敗した場合も上位の包括的なエラーハンドリングに委ねる
+            raise
+
         # ユーザー設定のフレーム間隔を反映しつつ、進捗計算のためにリスト化
         frames = list(video_processor.extract_frames(
             video_file,

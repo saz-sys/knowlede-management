@@ -21,6 +21,7 @@ from PIL import Image, ImageTk
 from src.lib import get_logger
 from src.models import VideoFile, UserSettings, Thumbnail, ThumbnailOrientation
 from src.gui.async_worker import create_worker, thumbnail_extraction_worker
+from src.services.video_processor import VideoProcessor
 
 class TkThumbnailApp:
     def __init__(self) -> None:
@@ -150,7 +151,17 @@ class TkThumbnailApp:
         if not path:
             return
         self.var_path.set(path)
-        self.current_video = VideoFile(file_path=Path(path))
+        # 動画情報をロードし、解像度をUIに反映
+        try:
+            vp = VideoProcessor()
+            loaded = vp.load_video(Path(path))
+            self.current_video = loaded
+            # デフォルトの幅・高さを動画サイズに設定
+            self.var_w.set(str(int(loaded.width)))
+            self.var_h.set(str(int(loaded.height)))
+        except Exception as e:
+            messagebox.showerror("エラー", f"動画の読み込みに失敗しました:\n{e}")
+            self.current_video = None
 
     def _orientation_enum(self) -> ThumbnailOrientation:
         label = self.var_ori.get()
@@ -162,7 +173,17 @@ class TkThumbnailApp:
 
     def _start(self) -> None:
         if not self.current_video and self.var_path.get():
-            self.current_video = VideoFile(file_path=Path(self.var_path.get()))
+            # 選択済みパスから解像度を取得しつつロード
+            try:
+                vp = VideoProcessor()
+                self.current_video = vp.load_video(Path(self.var_path.get()))
+                # UI側の幅・高さが未設定/初期値なら動画サイズを反映
+                if not self.var_w.get().strip() or not self.var_h.get().strip():
+                    self.var_w.set(str(int(self.current_video.width)))
+                    self.var_h.set(str(int(self.current_video.height)))
+            except Exception as e:
+                messagebox.showerror("エラー", f"動画の読み込みに失敗しました:\n{e}")
+                self.current_video = None
         if not self.current_video:
             messagebox.showinfo("情報", "動画を選択してください")
             return
@@ -238,8 +259,17 @@ class TkThumbnailApp:
         thumb_max_w = 360
         for i, th in enumerate(thumbnails):
             try:
-                png_bytes = th.to_png_bytes()
-                img = Image.open(io.BytesIO(png_bytes))
+                # Thumbnail.image_data は numpy.ndarray(RGB) 想定。bytes の場合も対応。
+                if hasattr(th, 'image_data'):
+                    data = th.image_data
+                    if isinstance(data, bytes):
+                        img = Image.open(io.BytesIO(data))
+                    else:
+                        # numpy 配列 (RGB) を PIL Image に変換
+                        img = Image.fromarray(data.astype('uint8'))
+                else:
+                    # フォールバック: to_dict から取得できる場合は未対応 -> スキップ
+                    raise ValueError("thumbnail image_data is missing")
                 scale = min(1.0, float(thumb_max_w) / float(max(1, img.width)))
                 if scale < 1.0:
                     img = img.resize((int(img.width * scale), int(img.height * scale)), Image.LANCZOS)
@@ -250,10 +280,13 @@ class TkThumbnailApp:
             frame = ttk.Frame(self.inner, padding=6)
             r, c = divmod(i, cols)
             frame.grid(row=r, column=c, sticky="nw")
-            meta = f"{i+1}: {th.width}x{th.height} @ {th.timestamp:.1f}s"
+            meta = f"{i+1}: {th.width}x{th.height} @ {th.source_timestamp:.1f}s"
             ttk.Label(frame, text=meta).pack(anchor="w")
             if photo is not None:
-                tk.Label(frame, image=photo).pack(anchor="w")
+                img_label = tk.Label(frame, image=photo)
+                # 強参照をウィジェットにも保持（GC対策）
+                img_label.image = photo
+                img_label.pack(anchor="w")
 
     def _save_all(self) -> None:
         if not self.thumbnails:
@@ -265,7 +298,7 @@ class TkThumbnailApp:
         out = Path(out_dir)
         out.mkdir(parents=True, exist_ok=True)
         for i, th in enumerate(self.thumbnails, 1):
-            th.save_to_file(out / f"thumbnail_{i:03d}.png")
+            th.save(out / f"thumbnail_{i:03d}.png", overwrite=True)
         messagebox.showinfo("完了", "保存が完了しました")
 
     # ---------- ユーティリティ ----------
