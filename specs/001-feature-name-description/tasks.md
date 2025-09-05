@@ -89,9 +89,9 @@
 - [x] T028 src/services/thumbnail_extractor.py でThumbnailExtractor実装（リサイズ、切り抜き、PNG保存）
 
 ### ユーティリティライブラリ
-- [ ] T029 [P] src/lib/__init__.py でライブラリパッケージ初期化  
-- [ ] T030 [P] src/lib/config.py で設定管理（ファイル読み書き、デフォルト値）
-- [ ] T031 [P] src/lib/errors.py でカスタム例外クラス定義
+- [x] T029 [P] src/lib/__init__.py でライブラリパッケージ初期化  
+- [x] T030 [P] src/lib/config.py で設定管理（ファイル読み書き、デフォルト値）
+- [x] T031 [P] src/lib/errors.py でカスタム例外クラス定義
 
 ## フェーズ 3.5: GUI実装
 
