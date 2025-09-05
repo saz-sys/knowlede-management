@@ -66,22 +66,25 @@
 ## フェーズ 3.3: データモデル実装（テストが失敗している場合のみ）
 
 ### 基本モデル [P]
-- [ ] T015 [P] src/models/__init__.py でモデルパッケージ初期化
-- [ ] T016 [P] src/models/point_2d.py でPoint2Dクラス（座標計算メソッド含む）
-- [ ] T017 [P] src/models/bounding_box.py でBoundingBoxクラス（ピクセル座標変換含む）
-- [ ] T018 [P] src/models/face_detection_result.py でFaceDetectionResultクラス
-- [ ] T019 [P] src/models/video_file.py でVideoFileクラス（バリデーション、状態遷移含む）
-- [ ] T020 [P] src/models/frame.py でFrameクラス（計算プロパティ含む）
-- [ ] T021 [P] src/models/user_settings.py でUserSettingsクラス（列挙型含む）
-- [ ] T022 [P] src/models/thumbnail.py でThumbnailクラス
-- [ ] T023 [P] src/models/thumbnail_extraction_job.py でThumbnailExtractionJobクラス
+- [x] T015 [P] src/models/__init__.py でモデルパッケージ初期化
+- [x] T016 [P] src/models/point_2d.py でPoint2Dクラス（座標計算メソッド含む）
+- [x] T017 [P] src/models/bounding_box.py でBoundingBoxクラス（ピクセル座標変換含む）
+- [x] T018 [P] src/models/face_detection_result.py でFaceDetectionResultクラス
+- [x] T019 [P] src/models/video_file.py でVideoFileクラス（バリデーション、状態遷移含む）
+- [x] T020 [P] src/models/frame.py でFrameクラス（計算プロパティ含む）
+- [x] T021 [P] src/models/user_settings.py でUserSettingsクラス（列挙型含む）
+- [x] T022 [P] src/models/thumbnail.py でThumbnailクラス
+- [x] T023 [P] src/models/thumbnail_extraction_job.py でThumbnailExtractionJobクラス
+
+### エラー処理 [P]
+- [x] T024 [P] src/lib/errors.py でカスタム例外クラス（ユーザーフレンドリーメッセージ含む）
 
 ## フェーズ 3.4: コアサービス実装
 
 ### 動画処理サービス
-- [ ] T024 src/services/__init__.py でサービスパッケージ初期化
-- [ ] T025 src/services/video_processor.py でVideoProcessor実装（OpenCV、フレーム抽出、シーンチェンジ検出）
-- [ ] T026 src/services/face_detector.py でFaceDetector実装（MediaPipe、バッチ処理、設定調整）
+- [ ] T025 src/services/__init__.py でサービスパッケージ初期化
+- [ ] T026 src/services/video_processor.py でVideoProcessor実装（OpenCV、フレーム抽出、シーンチェンジ検出）
+- [ ] T027 src/services/face_detector.py でFaceDetector実装（MediaPipe、バッチ処理、設定調整）
 - [ ] T027 src/services/diversity_selector.py でDiversitySelector実装（ORB特徴量、K-means、多様性スコア）
 - [ ] T028 src/services/thumbnail_extractor.py でThumbnailExtractor実装（リサイズ、切り抜き、PNG保存）
 
