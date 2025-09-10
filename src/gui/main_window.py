@@ -144,12 +144,10 @@ class MainWindow:
         settings_frame.grid(row=1, column=0, sticky="ew", pady=(0, 10))
         settings_frame.columnconfigure(1, weight=1)
         
-        # サムネイル枚数
-        ttk.Label(settings_frame, text="サムネイル枚数:").grid(row=0, column=0, sticky="w", pady=2)
-        self.thumbnail_count_var = tk.IntVar(value=self.config.get('default_thumbnail_count', 5))
-        thumbnail_spin = ttk.Spinbox(settings_frame, from_=1, to=20, width=10,
-                                   textvariable=self.thumbnail_count_var)
-        thumbnail_spin.grid(row=0, column=1, sticky="ew", padx=(5, 0), pady=2)
+        # サムネイル枚数設定を削除（全候補を表示するため）
+        info_label = ttk.Label(settings_frame, text="全シーンから候補を抽出し、\n選択して保存できます", 
+                              font=get_gui_font(-1), foreground=get_color("text_secondary"))
+        info_label.grid(row=0, column=0, columnspan=2, sticky="w", pady=2)
         
         # 出力サイズ
         ttk.Label(settings_frame, text="幅:").grid(row=1, column=0, sticky="w", pady=2)
@@ -168,7 +166,7 @@ class MainWindow:
         
         # プリセットボタン
         preset_frame = ttk.Frame(settings_frame)
-        preset_frame.grid(row=3, column=0, columnspan=2, sticky="ew", pady=(5, 0))
+        preset_frame.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(5, 0))
         preset_frame.columnconfigure(0, weight=1)
         preset_frame.columnconfigure(1, weight=1)
         
@@ -406,21 +404,18 @@ class MainWindow:
                 # 縦型プリセット: 1080x1920
                 self.width_var.set(1080)
                 self.height_var.set(1920)
-                self.thumbnail_count_var.set(5)
                 self.status_bar_var.set("縦型プリセットを適用しました")
                 return
             elif preset_name == "landscape":
                 # 横型プリセット: 1920x1080
                 self.width_var.set(1920)
                 self.height_var.set(1080)
-                self.thumbnail_count_var.set(5)
                 self.status_bar_var.set("横型プリセットを適用しました")
                 return
             else:
                 return
             
             # GUI設定を更新
-            self.thumbnail_count_var.set(preset.get('default_thumbnail_count', 5))
             self.width_var.set(preset.get('default_output_width', 1920))
             self.height_var.set(preset.get('default_output_height', 1080))
             
@@ -443,10 +438,8 @@ class MainWindow:
         try:
             # UserSettings作成
             settings = UserSettings(
-                thumbnail_count=self.thumbnail_count_var.get(),
                 output_width=self.width_var.get(),
-                output_height=self.height_var.get(),
-                orientation=self._get_selected_orientation()
+                output_height=self.height_var.get()
             )
             
             # UI状態更新
@@ -523,7 +516,7 @@ class MainWindow:
             self.thumbnail_count_var.set(self.config.get('default_thumbnail_count', 5))
             self.width_var.set(self.config.get('default_output_width', 1920))
             self.height_var.set(self.config.get('default_output_height', 1080))
-            self.orientation_var.set(self._orientation_value_to_label(self.config.get('default_orientation', 'landscape')))
+            # orientation設定は削除（サイズから自動判定）
             
             self.status_bar_var.set("設定をデフォルト値にリセットしました")
             messagebox.showinfo("完了", "設定をデフォルト値にリセットしました。")
@@ -600,43 +593,30 @@ GUIバージョン: {gui_version}
         except Exception:
             pass
 
-    # 補助メソッド（縦横UI）
+    # 補助メソッド（向き判定）
     def _orientation_value_to_label(self, value: str) -> str:
-        """設定値からUI表示ラベルへ変換"""
-        mapping = {
-            'landscape': '横型 (Landscape)',
-            'portrait': '縦型 (Portrait)',
-            'auto': '自動 (Auto)'
-        }
-        return mapping.get(value, '横型 (Landscape)')
+        """設定値からUI表示ラベルへ変換（互換性のため残す）"""
+        return value
     
     def _orientation_label_to_value(self, label: str) -> str:
-        """UI表示ラベルから設定値へ変換"""
-        reverse = {
-            '横型 (Landscape)': 'landscape',
-            '縦型 (Portrait)': 'portrait',
-            '自動 (Auto)': 'auto'
-        }
-        return reverse.get(label, 'landscape')
+        """UI表示ラベルから設定値へ変換（互換性のため残す）"""
+        return label
     
-    def _get_selected_orientation(self) -> ThumbnailOrientation:
-        """選択された向きを取得して列挙型に変換"""
-        value = self._orientation_label_to_value(self.orientation_var.get())
-        if value == 'portrait':
-            return ThumbnailOrientation.PORTRAIT
-        if value == 'auto':
-            return ThumbnailOrientation.AUTO
-        return ThumbnailOrientation.LANDSCAPE
+    def _get_selected_orientation(self) -> str:
+        """選択された向きを取得（サイズから自動判定）"""
+        # サイズから向きを自動判定
+        if self.height_var.get() > self.width_var.get():
+            return 'portrait'
+        else:
+            return 'landscape'
     
     def _notify_settings_changed(self):
         """設定変更を通知"""
         if self.on_settings_changed:
             try:
                 settings = UserSettings(
-                    thumbnail_count=self.thumbnail_count_var.get(),
                     output_width=self.width_var.get(),
-                    output_height=self.height_var.get(),
-                    orientation=self._get_selected_orientation()
+                    output_height=self.height_var.get()
                 )
                 self.on_settings_changed(settings)
             except Exception as e:

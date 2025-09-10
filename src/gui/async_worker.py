@@ -518,65 +518,58 @@ def thumbnail_extraction_worker(video_file, user_settings, worker: AsyncWorker):
         
         worker.report_progress(60.0, f"{len(frames_with_faces)}個のフレームで顔を検出")
         
-        # DiversitySelectorで多様性選択
-        worker.report_progress(65.0, "多様性スコアを計算しています...")
-        diversity_selector = DiversitySelector()
+        # シーンチェンジ検出でより多くの候補を抽出
+        worker.report_progress(60.0, "シーンチェンジを検出しています...")
+        scene_frames = video_processor.detect_scene_changes(frames, threshold=0.3)
         
-        selected_frames = diversity_selector.select_diverse_frames(
-            frames_with_faces, user_settings.thumbnail_count
-        )
-
-        # 同一フレーム番号の重複を除外
-        unique_frames = []
-        seen_numbers = set()
-        for f in selected_frames:
-            if getattr(f, 'frame_number', None) in seen_numbers:
+        # 顔検出フレームとシーンチェンジフレームを結合（重複除去）
+        all_candidate_frames = []
+        seen_frame_numbers = set()
+        
+        # 顔検出フレームを優先的に追加
+        for frame in frames_with_faces:
+            if frame.frame_number not in seen_frame_numbers:
+                all_candidate_frames.append(frame)
+                seen_frame_numbers.add(frame.frame_number)
+        
+        # シーンチェンジフレームを追加（顔検出フレームと重複しないもの）
+        for frame in scene_frames:
+            if frame.frame_number not in seen_frame_numbers:
+                all_candidate_frames.append(frame)
+                seen_frame_numbers.add(frame.frame_number)
+        
+        worker.report_progress(65.0, f"{len(all_candidate_frames)}個の候補フレームを準備")
+        
+        # 全候補からサムネイルを生成（ユーザーが選択できるように）
+        worker.report_progress(70.0, "サムネイルを生成しています...")
+        thumbnail_extractor = ThumbnailExtractor()
+        
+        # 進捗計算用
+        total_candidates = len(all_candidate_frames) if all_candidate_frames else 1
+        generated_thumbnails = []
+        
+        for i, frame in enumerate(all_candidate_frames):
+            if worker.check_cancellation():
+                return []
+            
+            try:
+                thumbnail = thumbnail_extractor.generate_thumbnail(frame, user_settings)
+                generated_thumbnails.append(thumbnail)
+                
+                # 進捗更新
+                progress = 70.0 + (i / total_candidates) * 25.0
+                worker.report_progress(progress, f"サムネイル生成中... ({i+1}/{len(all_candidate_frames)})")
+                
+            except Exception as e:
+                worker.logger.warning(f"フレーム{frame.frame_number}のサムネイル生成でエラー: {e}")
                 continue
-            seen_numbers.add(getattr(f, 'frame_number', None))
-            unique_frames.append(f)
-        selected_frames = unique_frames
 
-        # 顔付きフレームが不足して要求枚数に満たない場合、残りを全体フレームから補充
-        if len(selected_frames) < user_settings.thumbnail_count:
-            needed = user_settings.thumbnail_count - len(selected_frames)
-            # 既に選ばれたフレームを除外して先頭から補充
-            selected_ids = {id(f) for f in selected_frames}
-            for f in frames:
-                if id(f) in selected_ids:
-                    continue
-                selected_frames.append(f)
-                if len(selected_frames) >= user_settings.thumbnail_count:
-                    break
+        worker.report_progress(95.0, f"{len(generated_thumbnails)}個のサムネイル候補を生成完了")
         
         if worker.check_cancellation():
             return []
         
-        worker.report_progress(80.0, f"{len(selected_frames)}個の候補フレームを選択")
-        
-        # ThumbnailExtractorでサムネイル生成
-        worker.report_progress(85.0, "サムネイルを生成しています...")
-        thumbnail_extractor = ThumbnailExtractor()
-        
-        thumbnails = []
-        total_selected = len(selected_frames) if len(selected_frames) > 0 else 1
-        for i, frame in enumerate(selected_frames):
-            worker.wait_if_paused()
-            if worker.check_cancellation():
-                return []
-            
-            # サムネイル生成（正しいAPI名と引数）
-            thumbnail = thumbnail_extractor.generate_thumbnail(
-                frame, user_settings
-            )
-            thumbnails.append(thumbnail)
-            
-            # 進捗更新
-            progress = 85.0 + (i / total_selected) * 15.0
-            worker.report_progress(progress, f"サムネイル生成中... ({i+1}/{len(selected_frames)})")
-        
-        worker.report_progress(100.0, f"{len(thumbnails)}個のサムネイル生成完了")
-        
-        return thumbnails
+        return generated_thumbnails
         
     except Exception as e:
         worker.logger.error(f"サムネイル抽出エラー: {e}")

@@ -96,10 +96,8 @@ class PSGApp:
                     continue
                 try:
                     settings = UserSettings(
-                        thumbnail_count=int(values["-COUNT-"]),
                         output_width=int(values["-W-"]),
-                        output_height=int(values["-H-"]),
-                        orientation=orientation_label_to_enum(values["-ORI-"])
+                        output_height=int(values["-H-"])
                     )
                 except Exception as e:
                     sg.popup_error(f"設定値が不正です: {e}")

@@ -102,9 +102,7 @@ class UserSettings:
         if self.thumbnail_count > 20:
             raise ValueError(f"thumbnail_countは20以下である必要があります: {self.thumbnail_count}")
         
-        # 向きの検証
-        if not isinstance(self.orientation, ThumbnailOrientation):
-            raise TypeError("orientationはThumbnailOrientationである必要があります")
+        # 向きの検証は削除（サイズから自動判定）
     
     def _validate_file_settings(self):
         """ファイル設定のバリデーション"""
@@ -289,7 +287,7 @@ class UserSettings:
             'output_width': self.output_width,
             'output_height': self.output_height,
             'thumbnail_count': self.thumbnail_count,
-            'orientation': self.orientation.value,
+            'orientation': 'portrait' if self.is_portrait_output else 'landscape',
             'aspect_ratio': self.aspect_ratio,
             'resolution_category': self.resolution_category,
             
@@ -348,8 +346,6 @@ class UserSettings:
             'portrait_mode': cls(
                 output_width=1080,
                 output_height=1920,
-                orientation=ThumbnailOrientation.PORTRAIT,
-                thumbnail_count=4,
                 quality_threshold=0.7,
                 diversity_weight=0.8
             )
@@ -368,12 +364,12 @@ class UserSettings:
     def __str__(self) -> str:
         """文字列表現"""
         return (f"UserSettings({self.output_width}x{self.output_height}, "
-                f"count={self.thumbnail_count}, {self.orientation.value})")
+                f"quality={self.quality_threshold}, diversity={self.diversity_weight})")
     
     def __repr__(self) -> str:
         """デバッグ用文字列表現"""
         return (f"UserSettings(output_size={self.output_width}x{self.output_height}, "
-                f"count={self.thumbnail_count}, orientation={self.orientation.value})")
+                f"quality={self.quality_threshold}, diversity={self.diversity_weight})")
     
     def __eq__(self, other) -> bool:
         """等価比較"""
@@ -383,7 +379,5 @@ class UserSettings:
         # 主要な設定項目で比較
         return (self.output_width == other.output_width and
                 self.output_height == other.output_height and
-                self.thumbnail_count == other.thumbnail_count and
-                self.orientation == other.orientation and
                 self.quality_threshold == other.quality_threshold and
                 self.diversity_weight == other.diversity_weight)

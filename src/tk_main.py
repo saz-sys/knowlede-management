@@ -195,10 +195,8 @@ class TkThumbnailApp:
             return
         try:
             settings = UserSettings(
-                thumbnail_count=int(self.var_count.get()),
                 output_width=int(self.var_w.get()),
-                output_height=int(self.var_h.get()),
-                orientation=self._orientation_enum(),
+                output_height=int(self.var_h.get())
             )
         except Exception as e:
             messagebox.showerror("設定エラー", f"設定値が不正です: {e}")

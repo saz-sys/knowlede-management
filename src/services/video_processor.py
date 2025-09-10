@@ -13,6 +13,15 @@ from typing import Iterator, List, Optional
 import logging
 from datetime import datetime
 
+# PySceneDetectのインポート
+try:
+    from scenedetect import detect, ContentDetector, ThresholdDetector
+    from scenedetect.video_manager import VideoManager
+    from scenedetect.scene_manager import SceneManager
+    PYSCENEDETECT_AVAILABLE = True
+except ImportError:
+    PYSCENEDETECT_AVAILABLE = False
+
 from ..models.video_file import VideoFile, VideoFileStatus
 from ..models.frame import Frame
 from ..lib.errors import (
@@ -239,6 +248,98 @@ class VideoProcessor:
                 f"閾値は0.0-1.0の範囲である必要があります: {threshold}"
             )
         
+        # PySceneDetectが利用可能な場合は使用
+        if PYSCENEDETECT_AVAILABLE and frames:
+            return self._detect_scene_changes_with_pyscenedetect(frames, threshold)
+        else:
+            return self._detect_scene_changes_fallback(frames, threshold)
+    
+    def _detect_scene_changes_with_pyscenedetect(self, frames: List[Frame], threshold: float) -> List[Frame]:
+        """PySceneDetectを使用したシーンチェンジ検出"""
+        try:
+            # 最初のフレームから動画ファイルパスを取得
+            video_file = frames[0].video_file
+            video_path = str(video_file.file_path)
+            
+            self.logger.info(f"PySceneDetectでシーンチェンジ検出開始: {video_path}")
+            
+            # PySceneDetectでシーン検出
+            scene_list = detect(video_path, ContentDetector(threshold=threshold * 100))
+            
+            # シーンからフレームを抽出
+            scene_frames = []
+            cap = cv2.VideoCapture(video_path)
+            
+            try:
+                for i, (start_time, end_time) in enumerate(scene_list):
+                    # シーンの中央時刻を計算
+                    center_time = (start_time.get_seconds() + end_time.get_seconds()) / 2
+                    center_frame_number = int(center_time * video_file.fps)
+                    
+                    # フレームを取得
+                    cap.set(cv2.CAP_PROP_POS_FRAMES, center_frame_number)
+                    ret, opencv_frame = cap.read()
+                    
+                    if ret:
+                        # Frameオブジェクトを作成
+                        frame = Frame.create_from_opencv(
+                            video_file=video_file,
+                            frame_number=center_frame_number,
+                            timestamp=center_time,
+                            opencv_frame=opencv_frame
+                        )
+                        frame.scene_score = 1.0  # シーンチェンジフレームとしてマーク
+                        frame.update_quality_metrics()
+                        scene_frames.append(frame)
+                        
+                        self.logger.debug(f"シーンフレーム抽出: {center_time:.2f}秒 (フレーム{center_frame_number})")
+            
+            finally:
+                cap.release()
+            
+            self.logger.info(f"PySceneDetect検出完了: {len(scene_frames)}シーン")
+            return scene_frames
+            
+        except Exception as e:
+            self.logger.warning(f"PySceneDetect検出エラー、フォールバック使用: {e}")
+            return self._detect_scene_changes_fallback(frames, threshold)
+    
+    def _detect_scene_changes_fallback(self, frames: List[Frame], threshold: float) -> List[Frame]:
+        """従来の方法でのシーンチェンジ検出（フォールバック）"""
+        if len(frames) < 2:
+            return frames.copy()
+        
+        self.logger.info(f"フォールバック方式でシーンチェンジ検出開始: {len(frames)}フレーム, 閾値={threshold}")
+        
+        scene_change_frames = [frames[0]]  # 最初のフレームは常に含める
+        
+        try:
+            for i in range(1, len(frames)):
+                current_frame = frames[i]
+                previous_frame = frames[i - 1]
+                
+                # ヒストグラム比較によるシーンチェンジ検出
+                scene_score = self._calculate_histogram_difference(
+                    previous_frame.image_data,
+                    current_frame.image_data
+                )
+                
+                current_frame.scene_score = scene_score
+                
+                if scene_score >= threshold:
+                    scene_change_frames.append(current_frame)
+                    self.logger.debug(f"シーンチェンジ検出: フレーム{current_frame.frame_number}, スコア={scene_score:.3f}")
+            
+            self.logger.info(f"フォールバック検出完了: {len(scene_change_frames)}フレーム選出")
+            return scene_change_frames
+            
+        except Exception as e:
+            self.logger.error(f"フォールバック検出エラー: {e}")
+            raise VideoProcessingError(
+                f"シーンチェンジ検出中にエラーが発生しました: {e}",
+                details={'frames_count': len(frames), 'threshold': threshold}
+            )
+    
     def _get_video_rotation(self, file_path: Path) -> Optional[int]:
         """
         ffprobeを使って回転メタデータ（rotateタグ）を取得（存在しない場合はNone）
