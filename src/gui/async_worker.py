@@ -525,6 +525,28 @@ def thumbnail_extraction_worker(video_file, user_settings, worker: AsyncWorker):
         selected_frames = diversity_selector.select_diverse_frames(
             frames_with_faces, user_settings.thumbnail_count
         )
+
+        # 同一フレーム番号の重複を除外
+        unique_frames = []
+        seen_numbers = set()
+        for f in selected_frames:
+            if getattr(f, 'frame_number', None) in seen_numbers:
+                continue
+            seen_numbers.add(getattr(f, 'frame_number', None))
+            unique_frames.append(f)
+        selected_frames = unique_frames
+
+        # 顔付きフレームが不足して要求枚数に満たない場合、残りを全体フレームから補充
+        if len(selected_frames) < user_settings.thumbnail_count:
+            needed = user_settings.thumbnail_count - len(selected_frames)
+            # 既に選ばれたフレームを除外して先頭から補充
+            selected_ids = {id(f) for f in selected_frames}
+            for f in frames:
+                if id(f) in selected_ids:
+                    continue
+                selected_frames.append(f)
+                if len(selected_frames) >= user_settings.thumbnail_count:
+                    break
         
         if worker.check_cancellation():
             return []

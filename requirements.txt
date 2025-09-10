@@ -21,3 +21,4 @@ mypy==1.7.1
 setuptools==69.0.2
 wheel==0.42.0
 PySimpleGUI==5.0.8.3
+pyinstaller==6.3.0

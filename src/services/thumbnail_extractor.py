@@ -126,8 +126,48 @@ class ThumbnailExtractor:
             # 元画像を取得（サイズ変更せず、元のフレーム解像度を保持）
             source_image = frame.image_data.copy()
 
-            # リサイズやクロップは行わず、そのまま使用
+            # サイズから向きを自動判定（幅 < 高さ = 縦型、幅 > 高さ = 横型）
             processed_image = source_image
+            height, width = processed_image.shape[:2]
+            
+            # ユーザー指定サイズから向きを判定
+            is_portrait_output = settings.is_portrait_output
+            
+            try:
+                if is_portrait_output:
+                    # ユーザー指定の縦比率（例: 1080x1920 → 9:16 ≒ 0.5625）
+                    target_aspect = (settings.output_width / settings.output_height)
+                    current_aspect = width / height
+                    if current_aspect > target_aspect:
+                        # 横長 → 左右をクロップ
+                        new_width = int(height * target_aspect)
+                        start_x = max(0, (width - new_width) // 2)
+                        end_x = start_x + new_width
+                        processed_image = processed_image[:, start_x:end_x, :]
+                    elif current_aspect < target_aspect:
+                        # 縦長すぎる → 上下をクロップ
+                        new_height = int(width / target_aspect)
+                        start_y = max(0, (height - new_height) // 2)
+                        end_y = start_y + new_height
+                        processed_image = processed_image[start_y:end_y, :, :]
+                else:  # 横型出力
+                    # ユーザー指定の横比率（例: 1920x1080 → 16:9 ≒ 1.7778）
+                    target_aspect = (settings.output_width / settings.output_height)
+                    current_aspect = width / height
+                    if current_aspect < target_aspect:
+                        # 縦長 → 上下をクロップ
+                        new_height = int(width / target_aspect)
+                        start_y = max(0, (height - new_height) // 2)
+                        end_y = start_y + new_height
+                        processed_image = processed_image[start_y:end_y, :, :]
+                    elif current_aspect > target_aspect:
+                        # 横長すぎる → 左右をクロップ
+                        new_width = int(height * target_aspect)
+                        start_x = max(0, (width - new_width) // 2)
+                        end_x = start_x + new_width
+                        processed_image = processed_image[:, start_x:end_x, :]
+            except Exception:
+                pass
 
             # Thumbnailオブジェクト作成（元解像度のまま）
             thumbnail = Thumbnail.create_from_frame(frame, settings, processed_image)

@@ -164,33 +164,22 @@ class MainWindow:
                                 textvariable=self.height_var)
         height_spin.grid(row=2, column=1, sticky="ew", padx=(5, 0), pady=2)
 
-        # サムネイル形式（縦/横/自動）
-        ttk.Label(settings_frame, text="サムネイル形式:").grid(row=3, column=0, sticky="w", pady=2)
-        default_orientation = self.config.get('default_orientation', 'landscape')
-        self.orientation_var = tk.StringVar(value=self._orientation_value_to_label(default_orientation))
-        self.orientation_combo = ttk.Combobox(
-            settings_frame,
-            state="readonly",
-            values=[
-                self._orientation_value_to_label('landscape'),
-                self._orientation_value_to_label('portrait'),
-                self._orientation_value_to_label('auto')
-            ],
-            textvariable=self.orientation_var
-        )
-        self.orientation_combo.grid(row=3, column=1, sticky="ew", padx=(5, 0), pady=2)
-        self.orientation_combo.bind('<<ComboboxSelected>>', lambda e: self._notify_settings_changed())
+        # 向きはサイズから自動判定されるため、UIを削除
         
         # プリセットボタン
         preset_frame = ttk.Frame(settings_frame)
-        preset_frame.grid(row=4, column=0, columnspan=2, sticky="ew", pady=(5, 0))
+        preset_frame.grid(row=3, column=0, columnspan=2, sticky="ew", pady=(5, 0))
         preset_frame.columnconfigure(0, weight=1)
         preset_frame.columnconfigure(1, weight=1)
         
         ttk.Button(preset_frame, text="高品質", 
                   command=lambda: self._apply_preset("high_quality")).grid(row=0, column=0, sticky="ew", padx=(0, 2))
+        ttk.Button(preset_frame, text="縦型", 
+                  command=lambda: self._apply_preset("portrait")).grid(row=0, column=1, sticky="ew", padx=(2, 0))
+        ttk.Button(preset_frame, text="横型", 
+                  command=lambda: self._apply_preset("landscape")).grid(row=1, column=0, sticky="ew", padx=(0, 2))
         ttk.Button(preset_frame, text="高速", 
-                  command=lambda: self._apply_preset("fast_generation")).grid(row=0, column=1, sticky="ew", padx=(2, 0))
+                  command=lambda: self._apply_preset("fast_generation")).grid(row=1, column=1, sticky="ew", padx=(2, 0))
         
         # 実行ボタン
         button_frame = ttk.Frame(control_frame)
@@ -352,6 +341,9 @@ class MainWindow:
                 self.video_path_var.set(f"{video_file.file_path.name}")
                 self.status_bar_var.set(f"動画ファイル選択: {video_file.file_path.name}")
                 
+                # 動画の向きに応じてサムネイルサイズを自動調整（オプション）
+                # self._auto_adjust_thumbnail_size_for_video(video_file)
+                
                 # ボタン状態更新
                 self.extract_button.config(state="normal")
                 
@@ -365,6 +357,42 @@ class MainWindow:
                 self.logger.error(f"動画ファイル読み込みエラー: {e}")
                 messagebox.showerror("エラー", f"動画ファイルの読み込みに失敗しました:\\n{e}")
     
+    def _auto_adjust_thumbnail_size_for_video(self, video_file: VideoFile):
+        """
+        動画の向きに応じてサムネイルサイズを自動調整
+        
+        Args:
+            video_file: 選択された動画ファイル
+        """
+        try:
+            # 動画が縦型の場合、サムネイルサイズを縦型に調整
+            if video_file.is_portrait:
+                # 縦型動画の場合、縦型のサムネイルサイズに変更
+                current_width = self.width_var.get()
+                current_height = self.height_var.get()
+                
+                # 現在が横型サイズの場合、縦型に変更
+                if current_width > current_height:
+                    self.width_var.set(current_height)
+                    self.height_var.set(current_width)
+                    self.status_bar_var.set(f"縦型動画検出: サムネイルサイズを縦型に自動調整")
+                    self.logger.info(f"縦型動画検出: サムネイルサイズを {current_width}x{current_height} → {current_height}x{current_width} に調整")
+            
+            # 動画が横型の場合、サムネイルサイズを横型に調整
+            elif video_file.is_landscape:
+                current_width = self.width_var.get()
+                current_height = self.height_var.get()
+                
+                # 現在が縦型サイズの場合、横型に変更
+                if current_height > current_width:
+                    self.width_var.set(current_height)
+                    self.height_var.set(current_width)
+                    self.status_bar_var.set(f"横型動画検出: サムネイルサイズを横型に自動調整")
+                    self.logger.info(f"横型動画検出: サムネイルサイズを {current_width}x{current_height} → {current_height}x{current_width} に調整")
+                    
+        except Exception as e:
+            self.logger.warning(f"サムネイルサイズ自動調整エラー: {e}")
+    
     def _apply_preset(self, preset_name: str):
         """設定プリセットを適用"""
         try:
@@ -374,6 +402,20 @@ class MainWindow:
                 preset = ConfigPresets.high_quality()
             elif preset_name == "fast_generation":
                 preset = ConfigPresets.fast_generation()
+            elif preset_name == "portrait":
+                # 縦型プリセット: 1080x1920
+                self.width_var.set(1080)
+                self.height_var.set(1920)
+                self.thumbnail_count_var.set(5)
+                self.status_bar_var.set("縦型プリセットを適用しました")
+                return
+            elif preset_name == "landscape":
+                # 横型プリセット: 1920x1080
+                self.width_var.set(1920)
+                self.height_var.set(1080)
+                self.thumbnail_count_var.set(5)
+                self.status_bar_var.set("横型プリセットを適用しました")
+                return
             else:
                 return
             

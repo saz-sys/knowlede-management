@@ -119,7 +119,13 @@ class TkThumbnailApp:
         preview.columnconfigure(0, weight=1)
         preview.rowconfigure(0, weight=1)
 
-        self.canvas = tk.Canvas(preview, highlightthickness=0)
+        # キャンバス/スクロールの背景を親と統一し、不要な縁取りを除去
+        # ttk.LabelFrame は 'background' オプションを直接持たないため、ルートの背景を参照
+        try:
+            bg = self.root.cget("background")
+        except Exception:
+            bg = "white"
+        self.canvas = tk.Canvas(preview, highlightthickness=0, bd=0, relief="flat", background=bg)
         self.vscroll = ttk.Scrollbar(preview, orient="vertical", command=self.canvas.yview)
         self.canvas.configure(yscrollcommand=self.vscroll.set)
         self.canvas.grid(row=0, column=0, sticky="nsew")

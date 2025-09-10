@@ -33,7 +33,7 @@ class UserSettings:
     output_width: int = 1920                           # 出力幅（ピクセル）
     output_height: int = 1080                          # 出力高さ（ピクセル）
     thumbnail_count: int = 5                           # サムネイル生成枚数
-    orientation: ThumbnailOrientation = ThumbnailOrientation.LANDSCAPE  # 向き
+    # 向きは output_width と output_height から自動判定（幅 < 高さ = 縦型、幅 > 高さ = 横型）
     
     # ファイル設定
     output_directory: Path = field(default_factory=lambda: Path.home() / "Downloads")  # 出力ディレクトリ
@@ -54,6 +54,16 @@ class UserSettings:
     created_at: Optional[str] = None                   # 設定作成日時
     custom_settings: Dict[str, Any] = field(default_factory=dict)  # カスタム設定
     
+    @property
+    def is_portrait_output(self) -> bool:
+        """出力が縦型かどうか（幅 < 高さ）"""
+        return self.output_width < self.output_height
+    
+    @property
+    def is_landscape_output(self) -> bool:
+        """出力が横型かどうか（幅 > 高さ）"""
+        return self.output_width > self.output_height
+
     def __post_init__(self):
         """初期化後のバリデーション"""
         self._validate_output_settings()

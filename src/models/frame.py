@@ -291,6 +291,19 @@ class Frame:
         import cv2
         rgb_frame = cv2.cvtColor(opencv_frame, cv2.COLOR_BGR2RGB)
         
+        # 回転メタデータに基づき画像を回転
+        try:
+            rotation = video_file.get_metadata('rotation', None)
+            if rotation in (90, 180, 270):
+                if rotation == 90:
+                    rgb_frame = cv2.rotate(rgb_frame, cv2.ROTATE_90_CLOCKWISE)
+                elif rotation == 180:
+                    rgb_frame = cv2.rotate(rgb_frame, cv2.ROTATE_180)
+                elif rotation == 270:
+                    rgb_frame = cv2.rotate(rgb_frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
+        except Exception:
+            pass
+        
         return cls(
             video_file=video_file,
             frame_number=frame_number,

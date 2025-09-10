@@ -6,6 +6,7 @@ OpenCVを使用した動画ファイルの読み込み、フレーム抽出、
 """
 
 import cv2
+import subprocess
 import numpy as np
 from pathlib import Path
 from typing import Iterator, List, Optional
@@ -72,6 +73,12 @@ class VideoProcessor:
                 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
                 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
                 
+                # 端末にffprobeがあれば回転メタデータを取得
+                rotation = self._get_video_rotation(file_path)
+                if rotation in (90, 270):
+                    # 表示上は縦横が入れ替わるため論理サイズを交換
+                    width, height = height, width
+                
                 # プロパティの妥当性チェック
                 if fps <= 0 or frame_count <= 0 or width <= 0 or height <= 0:
                     raise CorruptedVideoError(
@@ -93,6 +100,8 @@ class VideoProcessor:
                 video_file.height = height
                 video_file.total_frames = frame_count
                 video_file.duration = duration
+                if rotation is not None:
+                    video_file.add_metadata('rotation', rotation)
                 
                 # コーデック情報の取得
                 fourcc = cap.get(cv2.CAP_PROP_FOURCC)
@@ -230,6 +239,38 @@ class VideoProcessor:
                 f"閾値は0.0-1.0の範囲である必要があります: {threshold}"
             )
         
+    def _get_video_rotation(self, file_path: Path) -> Optional[int]:
+        """
+        ffprobeを使って回転メタデータ（rotateタグ）を取得（存在しない場合はNone）
+        """
+        try:
+            result = subprocess.run(
+                [
+                    'ffprobe',
+                    '-v', 'error',
+                    '-select_streams', 'v:0',
+                    '-show_entries', 'stream_tags=rotate',
+                    '-of', 'default=nw=1:nk=1',
+                    str(file_path)
+                ],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                check=False
+            )
+            text = (result.stdout or '').strip()
+            if not text:
+                return None
+            value = int(text)
+            value = value % 360
+            if value in (0, 90, 180, 270):
+                return value
+            return None
+        except FileNotFoundError:
+            # ffprobe未インストール
+            return None
+        except Exception:
+            return None
         if len(frames) < 2:
             return frames.copy()
         
