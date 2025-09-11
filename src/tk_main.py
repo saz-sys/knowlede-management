@@ -129,6 +129,56 @@ class TkThumbnailApp:
         self.canvas_window = self.canvas.create_window((0, 0), window=self.inner, anchor="nw")
         self.inner.bind("<Configure>", self._on_inner_configure)
         self.canvas.bind("<Configure>", self._on_canvas_configure)
+        
+        # マウスホイールイベントをバインド（トラックパッド対応）
+        self.canvas.bind("<MouseWheel>", self._on_mousewheel)
+        self.canvas.bind("<Button-4>", self._on_mousewheel)  # Linux
+        self.canvas.bind("<Button-5>", self._on_mousewheel)  # Linux
+        
+        # macOSのトラックパッドでの追加イベント
+        self.canvas.bind("<Shift-MouseWheel>", self._on_mousewheel)  # 水平スクロール（必要に応じて）
+        
+        # フォーカスを設定してキーボードイベントも受け取れるようにする
+        self.canvas.bind("<Button-1>", lambda e: self.canvas.focus_set())
+        
+        # 内部フレームにもマウスホイールイベントをバインド（子ウィジェット上でもスクロール可能）
+        self.inner.bind("<MouseWheel>", self._on_mousewheel)
+        self.inner.bind("<Button-4>", self._on_mousewheel)
+        self.inner.bind("<Button-5>", self._on_mousewheel)
+        
+        # ルートウィンドウにもマウスホイールイベントをバインド（フォーカスが外れてもスクロール可能）
+        self.root.bind("<MouseWheel>", self._on_mousewheel)
+        
+        # プレビューフレームにもマウスホイールイベントをバインド
+        preview.bind("<MouseWheel>", self._on_mousewheel)
+        
+        # macOSでのトラックパッドスクロールのための追加バインド
+        import platform
+        if platform.system() == "Darwin":  # macOS
+            # macOSでは異なるイベント名を使用する場合がある
+            self.canvas.bind("<MouseWheel>", self._on_mousewheel)
+            self.canvas.bind("<Option-MouseWheel>", self._on_mousewheel)
+            self.canvas.bind("<Command-MouseWheel>", self._on_mousewheel)
+            
+            # ルートウィンドウにも同様のバインド
+            self.root.bind("<MouseWheel>", self._on_mousewheel)
+            self.root.bind("<Option-MouseWheel>", self._on_mousewheel)
+            self.root.bind("<Command-MouseWheel>", self._on_mousewheel)
+            
+            # macOSでのトラックパッドスクロールのための特別な設定
+            try:
+                # Tkinterのバージョンによっては異なるイベント名を使用
+                self.canvas.bind("<MouseWheel>", self._on_mousewheel)
+                self.canvas.bind("<MouseWheel>", self._on_mousewheel, add="+")
+                
+                # ルートウィンドウにも同様のバインド
+                self.root.bind("<MouseWheel>", self._on_mousewheel)
+                self.root.bind("<MouseWheel>", self._on_mousewheel, add="+")
+            except Exception as e:
+                print(f"DEBUG: Error binding mousewheel events: {e}")
+        
+        # Canvasにフォーカスを設定（初期状態でスクロール可能にする）
+        self.canvas.focus_set()
 
         # ステータスバー（任意）
         statusbar = ttk.Frame(container)
@@ -137,7 +187,9 @@ class TkThumbnailApp:
 
     # ---------- イベント/コールバック ----------
     def _on_inner_configure(self, _event=None):
+        # スクロール領域を設定
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        print(f"DEBUG: Scroll region set to: {self.canvas.bbox('all')}")
 
     def _on_canvas_configure(self, event):
         # キャンバス幅に合わせて内部フレーム幅を更新
@@ -145,6 +197,44 @@ class TkThumbnailApp:
             self.canvas.itemconfig(self.canvas_window, width=event.width)
         except Exception:
             pass
+
+    def _on_mousewheel(self, event):
+        """マウスホイールイベントハンドラー（トラックパッド対応）"""
+        import platform
+        
+        # デバッグ情報を出力
+        print(f"DEBUG: MouseWheel event received!")
+        print(f"DEBUG: - delta: {event.delta}")
+        print(f"DEBUG: - platform: {platform.system()}")
+        print(f"DEBUG: - widget: {event.widget}")
+        print(f"DEBUG: - x, y: {event.x}, {event.y}")
+        
+        # スクロール領域が設定されているかチェック
+        scrollregion = self.canvas.cget("scrollregion")
+        print(f"DEBUG: - scrollregion: {scrollregion}")
+        
+        if not scrollregion or scrollregion == "0 0 0 0":
+            print("DEBUG: Scroll region not set, skipping scroll")
+            return "break"
+        
+        # macOSでのトラックパッドスクロール対応
+        if platform.system() == "Darwin":  # macOS
+            # macOSではdeltaが正の値で上スクロール、負の値で下スクロール
+            # トラックパッドでは通常1-3の値が来る
+            delta = event.delta
+            # スクロール量を調整（より滑らかに）
+            scroll_amount = int(-delta)
+        else:  # Windows/Linux
+            delta = -event.delta
+            scroll_amount = int(-delta / 120) * 3
+        
+        print(f"DEBUG: Calculated scroll_amount: {scroll_amount}")
+        
+        # Canvasをスクロール
+        self.canvas.yview_scroll(scroll_amount, "units")
+        
+        # イベントの伝播を停止
+        return "break"
 
     def _choose_file(self) -> None:
         path = filedialog.askopenfilename(title="動画を選択", filetypes=[("MP4", "*.mp4"), ("All", "*.*")])
@@ -357,8 +447,13 @@ class TkThumbnailApp:
                 def on_click(event, index=i):
                     print(f"DEBUG: Thumbnail {index} clicked")
                     self._toggle_selection(index)
+                    # フォーカスをCanvasに戻す（スクロール可能にする）
+                    self.canvas.focus_set()
                 
                 img_label.bind("<Button-1>", lambda e, idx=i: on_click(e, idx))
+        
+        # サムネイル表示後にCanvasにフォーカスを設定（スクロール可能にする）
+        self.canvas.focus_set()
 
     def _toggle_selection(self, index: int) -> None:
         """サムネイルの選択状態を切り替え"""
