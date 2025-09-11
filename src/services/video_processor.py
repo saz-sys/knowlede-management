@@ -64,15 +64,22 @@ class VideoProcessor:
         self.logger.info(f"動画ファイル読み込み開始: {file_path}")
         
         try:
+            # パスを正規化（PyInstallerアプリでの問題を解決）
+            if isinstance(file_path, str):
+                file_path = Path(file_path)
+            normalized_path = file_path.resolve()
+            
+            self.logger.info(f"正規化されたパス: {normalized_path}")
+            
             # VideoFileインスタンス作成（基本バリデーション含む）
-            video_file = VideoFile(file_path=file_path)
+            video_file = VideoFile(file_path=normalized_path)
             
             # OpenCVで動画情報を取得
-            cap = cv2.VideoCapture(str(file_path))
+            cap = cv2.VideoCapture(str(normalized_path))
             if not cap.isOpened():
                 raise CorruptedVideoError(
-                    f"動画ファイルを開けません: {file_path}",
-                    details={'file_path': str(file_path)}
+                    f"動画ファイルを開けません: {normalized_path}",
+                    details={'file_path': str(normalized_path)}
                 )
             
             try:

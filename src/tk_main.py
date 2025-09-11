@@ -150,11 +150,75 @@ class TkThumbnailApp:
         path = filedialog.askopenfilename(title="動画を選択", filetypes=[("MP4", "*.mp4"), ("All", "*.*")])
         if not path:
             return
-        self.var_path.set(path)
+        
+        # PyInstallerアプリでのパス問題を解決
+        try:
+            print(f"DEBUG: Raw path from filedialog: {repr(path)}")
+            print(f"DEBUG: Path type: {type(path)}")
+            print(f"DEBUG: Path length: {len(path)}")
+            
+            # パスを正規化
+            original_path = Path(path)
+            normalized_path = original_path.resolve()
+            
+            print(f"DEBUG: Original Path object: {original_path}")
+            print(f"DEBUG: Normalized path: {normalized_path}")
+            print(f"DEBUG: Original exists: {original_path.exists()}")
+            print(f"DEBUG: Normalized exists: {normalized_path.exists()}")
+            print(f"DEBUG: Original is_absolute: {original_path.is_absolute()}")
+            print(f"DEBUG: Normalized is_absolute: {normalized_path.is_absolute()}")
+            
+            # 複数の方法でパスを試す
+            test_paths = [
+                path,  # 元のパス
+                str(original_path),  # Pathオブジェクトを文字列に変換
+                str(normalized_path),  # 正規化されたパス
+            ]
+            
+            working_path = None
+            for i, test_path in enumerate(test_paths):
+                print(f"DEBUG: Testing path {i}: {repr(test_path)}")
+                if Path(test_path).exists():
+                    print(f"DEBUG: Path {i} exists!")
+                    working_path = test_path
+                    break
+                else:
+                    print(f"DEBUG: Path {i} does not exist")
+            
+            if not working_path:
+                # 最後の手段：パスを手動で構築
+                print("DEBUG: Trying manual path construction...")
+                import os
+                current_dir = os.getcwd()
+                print(f"DEBUG: Current working directory: {current_dir}")
+                
+                # 相対パスの場合、現在のディレクトリと結合
+                if not os.path.isabs(path):
+                    manual_path = os.path.join(current_dir, path)
+                    print(f"DEBUG: Manual path: {manual_path}")
+                    if os.path.exists(manual_path):
+                        working_path = manual_path
+                        print("DEBUG: Manual path exists!")
+                
+                if not working_path:
+                    messagebox.showerror("エラー", f"ファイルが見つかりません:\n元のパス: {path}\n正規化パス: {normalized_path}\n現在のディレクトリ: {current_dir}")
+                    return
+            
+            final_path = Path(working_path).resolve()
+            print(f"DEBUG: Final working path: {final_path}")
+            self.var_path.set(str(final_path))
+            
+        except Exception as e:
+            import traceback
+            error_details = traceback.format_exc()
+            print(f"DEBUG: Exception details: {error_details}")
+            messagebox.showerror("エラー", f"ファイルパスの処理に失敗しました:\n{e}\n\n詳細:\n{error_details}")
+            return
+        
         # 動画情報をロードし、解像度をUIに反映
         try:
             vp = VideoProcessor()
-            loaded = vp.load_video(Path(path))
+            loaded = vp.load_video(final_path)
             self.current_video = loaded
             # デフォルトの幅・高さを動画サイズに設定
             self.var_w.set(str(int(loaded.width)))
