@@ -235,7 +235,9 @@ class MainWindow:
         self.grid_host = ttk.Frame(preview_frame)
         self.grid_host.grid(row=0, column=0, sticky="nsew")
         self.grid_host.grid_remove()
+        print("DEBUG: Creating ThumbnailGrid...")
         self.thumbnail_grid = ThumbnailGrid(self.grid_host)
+        print("DEBUG: ThumbnailGrid created")
         
         # 初期は通常のウェルカム表示を行う（デバッグオーバーレイは使用しない）
         # 初回レイアウトでの再描画ハンドラ
@@ -636,6 +638,7 @@ GUIバージョン: {gui_version}
     
     def set_thumbnails(self, thumbnails: List['Thumbnail']):
         """サムネイル結果を設定"""
+        print(f"DEBUG: set_thumbnails called with {len(thumbnails)} thumbnails")
         try:
             # キャンバスを隠し、グリッドを表示
             try:
@@ -649,7 +652,11 @@ GUIバージョン: {gui_version}
             
             # グリッドにサムネイルを設定
             if hasattr(self, 'thumbnail_grid') and self.thumbnail_grid:
+                print(f"DEBUG: Setting {len(thumbnails)} thumbnails to grid")
                 self.thumbnail_grid.set_thumbnails(thumbnails)
+                print("DEBUG: Thumbnails set to grid")
+            else:
+                print("DEBUG: ThumbnailGrid not found or not initialized")
             
             # UI更新
             self.save_button.config(state="normal")

@@ -52,7 +52,7 @@ class ThumbnailItem:
         # キャンバスに描画
         self._draw()
         
-        # クリックイベント
+        # クリックイベント（描画後に設定）
         self._setup_events()
     
     def _prepare_image(self) -> ImageTk.PhotoImage:
@@ -88,9 +88,12 @@ class ThumbnailItem:
         border_color = get_color("primary") if self.is_selected else get_color("border")
         bg_color = get_color("surface")
         
+        # タグを作成（フレーム番号ベース）
+        tag_name = f"thumbnail_{self.thumbnail.frame_number}"
+        
         bg_rect = self.canvas.create_rectangle(
             self.x, self.y, self.x + self.width, self.y + self.height,
-            fill=bg_color, outline=border_color, width=2
+            fill=bg_color, outline=border_color, width=2, tags=tag_name
         )
         self.canvas_items.append(bg_rect)
         
@@ -99,7 +102,7 @@ class ThumbnailItem:
         img_y = self.y + 5 + (self.height - 30) // 2
         
         image_item = self.canvas.create_image(
-            img_x, img_y, image=self.photo, anchor="center"
+            img_x, img_y, image=self.photo, anchor="center", tags=tag_name
         )
         self.canvas_items.append(image_item)
         
@@ -111,7 +114,7 @@ class ThumbnailItem:
         text_item = self.canvas.create_text(
             img_x, self.y + self.height - 15,
             text=info_text, font=get_gui_font(-1),
-            fill=get_color("text_secondary"), anchor="center"
+            fill=get_color("text_secondary"), anchor="center", tags=tag_name
         )
         self.canvas_items.append(text_item)
         
@@ -120,19 +123,26 @@ class ThumbnailItem:
             check_item = self.canvas.create_text(
                 self.x + self.width - 15, self.y + 15,
                 text="✓", font=get_gui_font(2), fill=get_color("success"),
-                anchor="center"
+                anchor="center", tags=tag_name
             )
             self.canvas_items.append(check_item)
+        
+        # タグベースのイベントバインディング
+        self.canvas.tag_bind(tag_name, "<Button-1>", self._on_click)
+        self.canvas.tag_bind(tag_name, "<Enter>", self._on_enter)
+        self.canvas.tag_bind(tag_name, "<Leave>", self._on_leave)
+        
+        # デバッグ用：タグが正しく設定されているか確認
+        print(f"DEBUG: Created tag '{tag_name}' for frame {self.thumbnail.frame_number}")
     
     def _setup_events(self):
-        """イベントハンドリング設定"""
-        for item_id in self.canvas_items:
-            self.canvas.tag_bind(item_id, "<Button-1>", self._on_click)
-            self.canvas.tag_bind(item_id, "<Enter>", self._on_enter)
-            self.canvas.tag_bind(item_id, "<Leave>", self._on_leave)
+        """イベントハンドリング設定（タグベースで既に設定済み）"""
+        print(f"DEBUG: Events already bound via tags for {len(self.canvas_items)} canvas items")
     
     def _on_click(self, event):
         """クリック処理"""
+        print(f"DEBUG: ThumbnailItem clicked - frame {self.thumbnail.frame_number}")
+        messagebox.showinfo("ThumbnailItemクリック", f"ThumbnailItemがクリックされました！\nフレーム番号: {self.thumbnail.frame_number}")
         self.toggle_selection()
         if self.on_click:
             self.on_click(self)
@@ -149,7 +159,9 @@ class ThumbnailItem:
     
     def toggle_selection(self):
         """選択状態を切り替え"""
+        old_state = self.is_selected
         self.is_selected = not self.is_selected
+        print(f"DEBUG: Toggle selection - frame {self.thumbnail.frame_number}: {old_state} -> {self.is_selected}")
         self.redraw()
     
     def set_selection(self, selected: bool):
@@ -165,9 +177,8 @@ class ThumbnailItem:
             self.canvas.delete(item_id)
         self.canvas_items.clear()
         
-        # 再描画
+        # 再描画（イベントバインディングも含む）
         self._draw()
-        self._setup_events()
     
     def cleanup(self):
         """リソースを解放"""
@@ -208,12 +219,14 @@ class ThumbnailGrid:
         self._setup_ui()
         
         self.logger.info("サムネイルグリッド初期化完了")
+        print("DEBUG: ThumbnailGrid initialization completed")
     
     def _setup_ui(self):
         """UIを構築"""
         # メインフレーム
         self.main_frame = ttk.Frame(self.parent)
         self.main_frame.pack(fill="both", expand=True)
+        print("DEBUG: Main frame packed")
         
         # ツールバー
         self._setup_toolbar()
@@ -262,9 +275,10 @@ class ThumbnailGrid:
         canvas_frame.rowconfigure(0, weight=1)
         
         # キャンバスとスクロールバー
-        self.canvas = tk.Canvas(canvas_frame, bg="white")
+        self.canvas = tk.Canvas(canvas_frame, bg="white", highlightthickness=0)
         self.v_scrollbar = ttk.Scrollbar(canvas_frame, orient="vertical", command=self.canvas.yview)
         self.h_scrollbar = ttk.Scrollbar(canvas_frame, orient="horizontal", command=self.canvas.xview)
+        print("DEBUG: Canvas and scrollbars created")
         
         self.canvas.configure(yscrollcommand=self.v_scrollbar.set,
                             xscrollcommand=self.h_scrollbar.set)
@@ -274,10 +288,23 @@ class ThumbnailGrid:
         self.v_scrollbar.grid(row=0, column=1, sticky="ns")
         self.h_scrollbar.grid(row=1, column=0, sticky="ew")
         
+        # キャンバスにフォーカスを設定
+        self.canvas.focus_set()
+        
+        # デバッグ用：キャンバスの状態を確認
+        print(f"DEBUG: Canvas focus: {self.canvas.focus_get()}")
+        print(f"DEBUG: Canvas size: {self.canvas.winfo_width()}x{self.canvas.winfo_height()}")
+        print(f"DEBUG: Canvas visible: {self.canvas.winfo_viewable()}")
+        
         # マウスホイールスクロール
         self.canvas.bind("<MouseWheel>", self._on_mousewheel)
         self.canvas.bind("<Button-4>", self._on_mousewheel)
         self.canvas.bind("<Button-5>", self._on_mousewheel)
+        print("DEBUG: Mousewheel events bound")
+        
+        # キャンバス全体のクリックイベント（座標ベースで判定）
+        self.canvas.bind("<Button-1>", self._on_canvas_click)
+        print("DEBUG: Click events bound")
         
         # リサイズイベント
         self.canvas.bind("<Configure>", self._on_canvas_configure)
@@ -298,10 +325,52 @@ class ThumbnailGrid:
     
     def _on_mousewheel(self, event):
         """マウスホイールスクロール処理"""
+        print(f"DEBUG: Mousewheel event detected - delta: {event.delta}, num: {event.num}")
         if event.num == 4 or event.delta > 0:
             self.canvas.yview_scroll(-1, "units")
         elif event.num == 5 or event.delta < 0:
             self.canvas.yview_scroll(1, "units")
+    
+    def _on_canvas_click(self, event):
+        """キャンバスクリック処理（座標ベースで判定）"""
+        print(f"DEBUG: Canvas clicked at ({event.x}, {event.y})")
+        
+        # まずはクリックイベントが動作しているか確認するためポップアップを表示
+        messagebox.showinfo("クリック確認", f"キャンバスがクリックされました！\n座標: ({event.x}, {event.y})")
+        
+        # クリックされたサムネイルアイテムを特定
+        clicked_item = None
+        for i, item in enumerate(self.thumbnail_items):
+            # アイテムの境界内かチェック
+            if (item.x <= event.x <= item.x + item.width and 
+                item.y <= event.y <= item.y + item.height):
+                clicked_item = item
+                print(f"DEBUG: Clicked on thumbnail item {i} (frame {item.thumbnail.frame_number})")
+                messagebox.showinfo("サムネイルクリック", f"サムネイルがクリックされました！\nフレーム番号: {item.thumbnail.frame_number}")
+                break
+        
+        if clicked_item:
+            # 選択状態を切り替え
+            clicked_item.toggle_selection()
+            
+            # グリッドの選択状態を更新
+            item_index = self.thumbnail_items.index(clicked_item)
+            if clicked_item.is_selected:
+                self.selected_indices.add(item_index)
+            else:
+                self.selected_indices.discard(item_index)
+            
+            print(f"DEBUG: Selected indices: {self.selected_indices}")
+            
+            # UI更新
+            self._update_selection_ui()
+            
+            # コールバック実行
+            if self.on_selection_changed:
+                self.on_selection_changed(self.selected_indices.copy())
+        else:
+            print("DEBUG: No thumbnail item found at click position")
+            messagebox.showinfo("クリック確認", "サムネイル以外の場所がクリックされました")
     
     def _on_canvas_configure(self, event):
         """キャンバスリサイズ処理"""
@@ -346,6 +415,8 @@ class ThumbnailGrid:
                 self.item_width, self.item_height,
                 on_click=self._on_item_click
             )
+            print(f"DEBUG: Created ThumbnailItem {i} for frame {thumbnail.frame_number}")
+            print(f"DEBUG: Item position: x={current_x}, y={current_y}, width={self.item_width}, height={self.item_height}")
             
             # 選択状態を復元
             if i in self.selected_indices:
@@ -370,10 +441,14 @@ class ThumbnailGrid:
         # 選択状態を更新
         item_index = self.thumbnail_items.index(item)
         
+        print(f"DEBUG: Item click - index {item_index}, selected: {item.is_selected}")
+        
         if item.is_selected:
             self.selected_indices.add(item_index)
         else:
             self.selected_indices.discard(item_index)
+        
+        print(f"DEBUG: Selected indices: {self.selected_indices}")
         
         # UI更新
         self._update_selection_ui()
@@ -392,6 +467,7 @@ class ThumbnailGrid:
     
     def set_thumbnails(self, thumbnails: List[Thumbnail]):
         """サムネイルリストを設定"""
+        print(f"DEBUG: Setting {len(thumbnails)} thumbnails")
         self.thumbnails = thumbnails
         self.selected_indices.clear()
         
@@ -403,6 +479,12 @@ class ThumbnailGrid:
             # サムネイルを表示
             self._layout_thumbnails()
             self.logger.info(f"{len(thumbnails)}個のサムネイルを表示")
+            print(f"DEBUG: Layout completed, {len(self.thumbnail_items)} items created")
+            
+            # デバッグ用：キャンバスの状態を再確認
+            print(f"DEBUG: Canvas focus after layout: {self.canvas.focus_get()}")
+            print(f"DEBUG: Canvas size after layout: {self.canvas.winfo_width()}x{self.canvas.winfo_height()}")
+            print(f"DEBUG: Canvas visible after layout: {self.canvas.winfo_viewable()}")
         else:
             # 空状態を表示
             self._show_empty_state()

@@ -19,7 +19,7 @@ from typing import List, Optional
 from PIL import Image, ImageTk
 
 from src.lib import get_logger
-from src.models import VideoFile, UserSettings, Thumbnail, ThumbnailOrientation
+from src.models import VideoFile, UserSettings, Thumbnail
 from src.gui.async_worker import create_worker, thumbnail_extraction_worker
 from src.services.video_processor import VideoProcessor
 
@@ -27,7 +27,7 @@ class TkThumbnailApp:
     def __init__(self) -> None:
         self.logger = get_logger(__name__)
         self.root = tk.Tk()
-        self.root.title("動画サムネイル抽出 (tkinter)")
+        self.root.title("FrameSnap")
         self.root.geometry("1200x720")
 
         style = ttk.Style(self.root)
@@ -42,6 +42,9 @@ class TkThumbnailApp:
         self.current_video: Optional[VideoFile] = None
         self.thumbnails: List[Thumbnail] = []
         self._photo_images: List[ImageTk.PhotoImage] = []  # GC防止
+        self.selected_indices: set = set()  # 選択されたサムネイルのインデックス
+        self.selection_frames: dict = {}  # インデックス -> フレームのマッピング
+        print("DEBUG: TkThumbnailApp initialized")
 
         # ワーカー
         self.worker = create_worker("thumbnail_extraction")
@@ -75,28 +78,17 @@ class TkThumbnailApp:
         ent_path.grid(row=0, column=1, sticky="ew", padx=(5, 5))
         ttk.Button(control, text="選択", command=self._choose_file).grid(row=0, column=2, sticky="w")
 
-        ttk.Label(control, text="サムネイル枚数").grid(row=1, column=0, sticky="w", pady=(8, 0))
-        self.var_count = tk.StringVar(value="5")
-        spn_count = ttk.Spinbox(control, from_=1, to=50, textvariable=self.var_count, width=6)
-        spn_count.grid(row=1, column=1, sticky="w", padx=(5, 0), pady=(8, 0))
-
-        ttk.Label(control, text="幅x高さ").grid(row=2, column=0, sticky="w", pady=(8, 0))
+        ttk.Label(control, text="幅x高さ").grid(row=1, column=0, sticky="w", pady=(8, 0))
         self.var_w = tk.StringVar(value="1920")
         self.var_h = tk.StringVar(value="1080")
         frm_size = ttk.Frame(control)
-        frm_size.grid(row=2, column=1, sticky="w", padx=(5, 0), pady=(8, 0))
+        frm_size.grid(row=1, column=1, sticky="w", padx=(5, 0), pady=(8, 0))
         ttk.Entry(frm_size, textvariable=self.var_w, width=8).grid(row=0, column=0)
         ttk.Label(frm_size, text="x").grid(row=0, column=1, padx=(4, 4))
         ttk.Entry(frm_size, textvariable=self.var_h, width=8).grid(row=0, column=2)
 
-        ttk.Label(control, text="向き").grid(row=3, column=0, sticky="w", pady=(8, 0))
-        self.var_ori = tk.StringVar(value="横型 (Landscape)")
-        cmb_ori = ttk.Combobox(control, state="readonly", textvariable=self.var_ori,
-                               values=["横型 (Landscape)", "縦型 (Portrait)", "自動 (Auto)"])
-        cmb_ori.grid(row=3, column=1, sticky="w", padx=(5, 0), pady=(8, 0))
-
         frm_btn = ttk.Frame(control)
-        frm_btn.grid(row=4, column=0, columnspan=3, sticky="ew", pady=(12, 0))
+        frm_btn.grid(row=2, column=0, columnspan=3, sticky="ew", pady=(12, 0))
         frm_btn.columnconfigure(0, weight=1)
         self.btn_start = ttk.Button(frm_btn, text="サムネイル抽出開始", command=self._start)
         self.btn_start.grid(row=0, column=0, sticky="ew")
@@ -104,14 +96,16 @@ class TkThumbnailApp:
         self.btn_cancel.grid(row=0, column=1, sticky="w", padx=(8, 0))
 
         self.prog = ttk.Progressbar(control, mode="determinate", maximum=100)
-        self.prog.grid(row=5, column=0, columnspan=3, sticky="ew", pady=(12, 0))
+        self.prog.grid(row=3, column=0, columnspan=3, sticky="ew", pady=(12, 0))
         self.lbl_status = ttk.Label(control, text="待機中")
-        self.lbl_status.grid(row=6, column=0, columnspan=3, sticky="w", pady=(4, 0))
+        self.lbl_status.grid(row=4, column=0, columnspan=3, sticky="w", pady=(4, 0))
 
         frm_save = ttk.Frame(control)
-        frm_save.grid(row=7, column=0, columnspan=3, sticky="ew", pady=(12, 0))
+        frm_save.grid(row=5, column=0, columnspan=3, sticky="ew", pady=(12, 0))
         self.btn_save_all = ttk.Button(frm_save, text="全て保存", command=self._save_all, state="disabled")
         self.btn_save_all.grid(row=0, column=0, sticky="w")
+        self.btn_save_selected = ttk.Button(frm_save, text="選択したものを保存", command=self._save_selected, state="disabled")
+        self.btn_save_selected.grid(row=0, column=1, sticky="w", padx=(8, 0))
 
         # 右: プレビュー（スクロール）
         preview = ttk.LabelFrame(container, text="プレビュー・結果", padding=10)
@@ -169,13 +163,6 @@ class TkThumbnailApp:
             messagebox.showerror("エラー", f"動画の読み込みに失敗しました:\n{e}")
             self.current_video = None
 
-    def _orientation_enum(self) -> ThumbnailOrientation:
-        label = self.var_ori.get()
-        if "Portrait" in label:
-            return ThumbnailOrientation.PORTRAIT
-        if "Auto" in label:
-            return ThumbnailOrientation.AUTO
-        return ThumbnailOrientation.LANDSCAPE
 
     def _start(self) -> None:
         if not self.current_video and self.var_path.get():
@@ -234,6 +221,7 @@ class TkThumbnailApp:
         self.btn_start.configure(state="normal")
         self.btn_cancel.configure(state="disabled")
         self.btn_save_all.configure(state="normal")
+        self.btn_save_selected.configure(state="normal")
 
     def _on_error(self, error: Exception) -> None:
         self.root.after(0, lambda: self._handle_error(error))
@@ -257,6 +245,8 @@ class TkThumbnailApp:
 
     def _render_thumbnails(self, thumbnails: List[Thumbnail]) -> None:
         self._clear_preview()
+        self.selected_indices.clear()  # 選択状態をリセット
+        self.selection_frames.clear()  # フレーム辞書をクリア
         if not thumbnails:
             return
         cols = 3
@@ -287,10 +277,54 @@ class TkThumbnailApp:
             meta = f"{i+1}: {th.width}x{th.height} @ {th.source_timestamp:.1f}s"
             ttk.Label(frame, text=meta).pack(anchor="w")
             if photo is not None:
-                img_label = tk.Label(frame, image=photo)
+                # 選択状態用のフレームを作成
+                selection_frame = tk.Frame(frame, relief="flat", bd=0, bg="")
+                selection_frame.pack(anchor="w")
+                
+                img_label = tk.Label(selection_frame, image=photo, relief="flat", bd=0)
                 # 強参照をウィジェットにも保持（GC対策）
                 img_label.image = photo
-                img_label.pack(anchor="w")
+                img_label.pack()
+                
+                # フレームを辞書に保存
+                self.selection_frames[i] = selection_frame
+                
+                # クリックイベントを追加
+                def on_click(event, index=i):
+                    print(f"DEBUG: Thumbnail {index} clicked")
+                    self._toggle_selection(index)
+                
+                img_label.bind("<Button-1>", lambda e, idx=i: on_click(e, idx))
+
+    def _toggle_selection(self, index: int) -> None:
+        """サムネイルの選択状態を切り替え"""
+        if index not in self.selection_frames:
+            print(f"DEBUG: Frame not found for index {index}")
+            return
+            
+        selection_frame = self.selection_frames[index]
+        
+        if index in self.selected_indices:
+            # 選択解除
+            self.selected_indices.remove(index)
+            selection_frame.config(bg="", relief="flat", bd=0, highlightthickness=0)
+            print(f"DEBUG: Thumbnail {index} deselected")
+        else:
+            # 選択
+            self.selected_indices.add(index)
+            selection_frame.config(bg="", relief="solid", bd=4, highlightthickness=0)
+            print(f"DEBUG: Thumbnail {index} selected")
+        
+        # 選択状態を更新
+        self._update_selection_status()
+
+    def _update_selection_status(self) -> None:
+        """選択状態の表示を更新"""
+        count = len(self.selected_indices)
+        if count > 0:
+            self._set_status(f"選択中: {count}個のサムネイル")
+        else:
+            self._set_status(f"完了 - {len(self.thumbnails)}個のサムネイル")
 
     def _save_all(self) -> None:
         if not self.thumbnails:
@@ -305,6 +339,28 @@ class TkThumbnailApp:
             th.save(out / f"thumbnail_{i:03d}.png", overwrite=True)
         messagebox.showinfo("完了", "保存が完了しました")
 
+    def _save_selected(self) -> None:
+        """選択されたサムネイルのみを保存"""
+        if not self.selected_indices:
+            messagebox.showinfo("情報", "選択されたサムネイルがありません")
+            return
+        
+        out_dir = filedialog.askdirectory(title="保存先フォルダを選択")
+        if not out_dir:
+            return
+        
+        out = Path(out_dir)
+        out.mkdir(parents=True, exist_ok=True)
+        
+        saved_count = 0
+        for i, idx in enumerate(sorted(self.selected_indices), 1):
+            if idx < len(self.thumbnails):
+                th = self.thumbnails[idx]
+                th.save(out / f"selected_thumbnail_{i:03d}.png", overwrite=True)
+                saved_count += 1
+        
+        messagebox.showinfo("完了", f"{saved_count}個のサムネイルを保存しました")
+
     # ---------- ユーティリティ ----------
     def _set_progress(self, value: float) -> None:
         self.prog.configure(value=value)
@@ -317,6 +373,7 @@ class TkThumbnailApp:
 
 
 def main() -> None:
+    print("DEBUG: Starting TkThumbnailApp...")
     TkThumbnailApp().run()
 
 
