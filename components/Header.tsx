@@ -22,6 +22,9 @@ export default function Header() {
               <Link href="/posts/new" className="hover:text-brand-dark">
                 新規投稿
               </Link>
+              <Link href="/rss-feeds" className="hover:text-brand-dark">
+                RSSフィード
+              </Link>
             </nav>
           )}
         </div>

@@ -1,0 +1,15 @@
+{
+  "tasks": {
+    "start": "deno run --allow-net --allow-env --allow-read index.ts"
+  },
+  "imports": {
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.46.1",
+    "rss-parser": "https://esm.sh/rss-parser@3.13.0",
+    "../_shared/open-graph.ts": "../_shared/open-graph.ts"
+  },
+  "compilerOptions": {
+    "lib": ["deno.window", "dom"],
+    "types": ["@supabase/functions-js"],
+    "jsx": "react-jsx"
+  }
+}

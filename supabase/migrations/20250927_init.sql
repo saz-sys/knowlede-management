@@ -51,18 +51,6 @@ create table if not exists public.rss_feeds (
   created_at timestamptz default now()
 );
 
--- RSS items queue
-create table if not exists public.rss_items (
-  id uuid primary key default gen_random_uuid(),
-  feed_id uuid references public.rss_feeds(id) on delete cascade,
-  title text not null,
-  url text not null,
-  summary text,
-  tag_suggestions text[],
-  status text default 'pending',
-  created_at timestamptz default now()
-);
-
 -- Slack channels
 create table if not exists public.slack_channels (
   id uuid primary key default gen_random_uuid(),
@@ -85,7 +73,6 @@ create table if not exists public.event_logs (
 alter table public.posts enable row level security;
 alter table public.comments enable row level security;
 alter table public.rss_feeds enable row level security;
-alter table public.rss_items enable row level security;
 alter table public.slack_channels enable row level security;
 alter table public.event_logs enable row level security;
 

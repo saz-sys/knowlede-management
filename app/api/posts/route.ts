@@ -33,7 +33,8 @@ export async function POST(request: NextRequest) {
         url: url.trim(),
         content: content?.trim() ?? null,
         summary: summary?.trim() ?? null,
-        notified_channels
+        notified_channels,
+        metadata: { source: "manual" }
       })
       .select(
         "id, author_id, title, url, content, summary, notified_channels, created_at, updated_at"
@@ -94,16 +95,36 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const tag = searchParams.get("tag");
+    const source = searchParams.get("source");
 
     let query = supabase
       .from("posts")
       .select(
-        "id, author_id, title, url, content, summary, notified_channels, created_at, updated_at, post_tags(tag:tags(id, name))"
+        `
+          id,
+          author_id,
+          author_email,
+          title,
+          url,
+          content,
+          summary,
+          notified_channels,
+          metadata,
+          created_at,
+          updated_at,
+          post_tags(tag:tags(id, name))
+        `
       )
       .order("created_at", { ascending: false });
 
     if (tag) {
       query = query.contains("post_tags", [{ tag: { name: tag } }]);
+    }
+
+    if (source === "manual") {
+      query = query.or("metadata->>source.is.null,metadata->>source.neq.rss");
+    } else if (source === "rss") {
+      query = query.eq("metadata->>source", "rss");
     }
 
     const { data: posts, error: fetchError } = await query;
