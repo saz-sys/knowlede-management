@@ -2,6 +2,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { ReactNode } from "react";
 import SupabaseProvider from "@/components/providers/SupabaseProvider";
+import Header from "@/components/Header";
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 
@@ -18,8 +19,13 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
 
   return (
     <html lang="ja">
-      <body>
-        <SupabaseProvider session={session}>{children}</SupabaseProvider>
+      <body className="bg-slate-50 text-slate-900">
+        <SupabaseProvider session={session}>
+          <Header />
+          <main className="min-h-screen">
+            {children}
+          </main>
+        </SupabaseProvider>
       </body>
     </html>
   );
