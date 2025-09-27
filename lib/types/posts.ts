@@ -1,6 +1,7 @@
 export interface Post {
   id: string;
   author_id: string;
+  author_email?: string | null;
   title: string;
   url: string;
   content?: string;

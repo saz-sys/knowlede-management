@@ -31,7 +31,7 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
       summary,
       created_at,
       updated_at,
-      author_id
+      author_email
     `)
     .eq("id", params.id)
     .single();
@@ -90,7 +90,7 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
         <header className="mb-4">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">{post.title}</h1>
           <div className="flex items-center gap-4 text-sm text-gray-600">
-            <span>投稿者ID: {post.author_id}</span>
+            <span>投稿者: {post.author_email ?? "不明"}</span>
             <span>投稿日: {formatDate(post.created_at)}</span>
             {post.updated_at !== post.created_at && (
               <span>更新日: {formatDate(post.updated_at)}</span>
