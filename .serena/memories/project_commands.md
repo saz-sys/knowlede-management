@@ -1,0 +1,7 @@
+- 開発サーバ: `docker compose up --build` またはローカルで `npm run dev`。
+- Lint: `npm run lint`
+- 型チェック: `npm run typecheck`
+- 本番ビルド: `npm run build`
+- Supabaseマイグレーション: `supabase db push` / `supabase migration repair`
+- Edge Functionデプロイ: `supabase functions deploy <name>`
+- Dockerコンテナログ確認: `docker compose logs -f`

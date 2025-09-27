@@ -10,9 +10,10 @@ interface FeedListProps {
   tagFilter: string | null;
   onKeywordChange: (value: string) => void;
   onTagFilterChange: (tag: string | null) => void;
+  onEditFeed: (feed: RssFeed) => void;
 }
 
-export default function FeedList({ feeds, keyword, tagFilter, onKeywordChange, onTagFilterChange }: FeedListProps) {
+export default function FeedList({ feeds, keyword, tagFilter, onKeywordChange, onTagFilterChange, onEditFeed }: FeedListProps) {
   const normalizedKeyword = keyword.toLowerCase();
 
   const availableTags = useMemo(() => {
@@ -120,6 +121,15 @@ export default function FeedList({ feeds, keyword, tagFilter, onKeywordChange, o
                 ) : (
                   <span className="text-xs text-gray-400">タグなし</span>
                 )}
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                <button
+                  onClick={() => onEditFeed(feed)}
+                  className="rounded-md border border-gray-300 px-3 py-1 text-xs text-gray-600 hover:bg-gray-100"
+                >
+                  編集
+                </button>
               </div>
             </article>
           ))

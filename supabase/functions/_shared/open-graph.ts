@@ -1,7 +1,19 @@
 import { DOMParser } from "https://deno.land/x/deno_dom@v0.1.38/deno-dom-wasm.ts";
 
+const REQUEST_TIMEOUT_MS = 5000;
+
+async function fetchWithTimeout(url: string, init: RequestInit = {}, timeout = REQUEST_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeout);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export async function fetchOpenGraphMetadata(url: string) {
-  const response = await fetch(url, {
+  const response = await fetchWithTimeout(url, {
     headers: {
       "User-Agent":
         "Mozilla/5.0 (compatible; PdEKnowledgeBot/1.0; +https://example.com/bot)"

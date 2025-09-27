@@ -1,0 +1,5 @@
+- コードスタイル: ESLint + Prettier (Next.js標準)。TypeScriptで型安全性を維持。
+- 既存フロントはTailwind CSSユーティリティを採用。クラス名はBEMではなくユーティリティ的に記述。
+- Supabase Edge FunctionsはDeno（TypeScript）で実装。fetchにはタイムアウトを設ける対応あり。
+- 環境変数は`.env.local`を想定。秘密情報はコードに直書きしない。
+- ファイル命名: Next.js App Router構成 (`app/segment/page.tsx`など)。Snake_caseのSQLマイグレーションファイル。

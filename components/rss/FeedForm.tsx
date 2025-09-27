@@ -1,21 +1,50 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useCallback, useEffect, useState } from "react";
 
 interface FeedFormProps {
+  initialValues?: {
+    id: string;
+    name: string;
+    url: string;
+    tags: string[];
+    is_active: boolean;
+  } | null;
   onSubmitted?: () => void;
+  onCancelEdit?: () => void;
 }
 
-export default function FeedForm({ onSubmitted }: FeedFormProps) {
-  const [name, setName] = useState("");
-  const [url, setUrl] = useState("");
-  const [tags, setTags] = useState("");
+export default function FeedForm({ initialValues, onSubmitted, onCancelEdit }: FeedFormProps) {
+  const [name, setName] = useState(initialValues?.name ?? "");
+  const [url, setUrl] = useState(initialValues?.url ?? "");
+  const [tags, setTags] = useState(initialValues?.tags?.join(", ") ?? "");
+  const [isActive, setIsActive] = useState(initialValues?.is_active ?? true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     setName("");
     setUrl("");
     setTags("");
+    setIsActive(true);
+  }, []);
+
+  useEffect(() => {
+    if (initialValues) {
+      setName(initialValues.name);
+      setUrl(initialValues.url);
+      setTags(initialValues.tags?.join(", ") ?? "");
+      setIsActive(initialValues.is_active);
+    } else {
+      resetForm();
+    }
+  }, [initialValues, resetForm]);
+
+  const handleCancel = () => {
+    if (initialValues) {
+      onCancelEdit?.();
+    } else {
+      resetForm();
+    }
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -27,30 +56,43 @@ export default function FeedForm({ onSubmitted }: FeedFormProps) {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch("/api/rss-feeds", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          name: name.trim(),
-          url: url.trim(),
-          tags: tags
-            .split(",")
-            .map((tag) => tag.trim())
-            .filter((tag) => tag.length > 0)
-        })
-      });
+      const payload = {
+        name: name.trim(),
+        url: url.trim(),
+        tags: tags
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter((tag) => tag.length > 0),
+        is_active: isActive
+      };
+
+      const response = initialValues
+        ? await fetch("/api/rss-feeds", {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ id: initialValues.id, ...payload })
+          })
+        : await fetch("/api/rss-feeds", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+          });
 
       if (!response.ok) {
         const data = await response.json().catch(() => null);
-        throw new Error(data?.error ?? "フィードの追加に失敗しました");
+        throw new Error(data?.error ?? "フィードの保存に失敗しました");
       }
 
-      resetForm();
       onSubmitted?.();
+      if (!initialValues) {
+        resetForm();
+      }
     } catch (error) {
-      alert(error instanceof Error ? error.message : "フィードの追加に失敗しました");
+      alert(error instanceof Error ? error.message : "フィードの保存に失敗しました");
     } finally {
       setIsSubmitting(false);
     }
@@ -58,8 +100,12 @@ export default function FeedForm({ onSubmitted }: FeedFormProps) {
 
   return (
     <section className="rounded-lg border bg-white p-5 shadow-sm">
-      <h2 className="text-lg font-semibold text-gray-900">新しいRSSフィードを追加</h2>
-      <p className="mt-1 text-sm text-gray-500">URLと任意のタグを入力してフィードを登録できます。</p>
+      <h2 className="text-lg font-semibold text-gray-900">
+        {initialValues ? "RSSフィードを編集" : "新しいRSSフィードを追加"}
+      </h2>
+      <p className="mt-1 text-sm text-gray-500">
+        URLと任意のタグを入力してフィードを{initialValues ? "更新" : "登録"}できます。
+      </p>
 
       <form onSubmit={handleSubmit} className="mt-4 space-y-4">
         <div>
@@ -95,20 +141,33 @@ export default function FeedForm({ onSubmitted }: FeedFormProps) {
           />
         </div>
 
+        <div className="flex items-center gap-2">
+          <input
+            id="feed-active"
+            type="checkbox"
+            checked={isActive}
+            onChange={(event) => setIsActive(event.target.checked)}
+            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          />
+          <label htmlFor="feed-active" className="text-sm text-gray-700">
+            フィードをアクティブにする
+          </label>
+        </div>
+
         <div className="flex justify-end gap-2">
           <button
             type="button"
-            onClick={resetForm}
+            onClick={handleCancel}
             className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100"
           >
-            クリア
+            {initialValues ? "キャンセル" : "クリア"}
           </button>
           <button
             type="submit"
             disabled={isSubmitting}
             className="rounded-md bg-blue-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {isSubmitting ? "登録中..." : "フィードを追加"}
+            {isSubmitting ? "保存中..." : initialValues ? "フィードを更新" : "フィードを追加"}
           </button>
         </div>
       </form>

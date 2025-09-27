@@ -1,0 +1,9 @@
+- 言語/フレームワーク: TypeScript, Next.js 14 (App Router), React 18, Tailwind CSS。
+- バックエンド: Supabase (Postgres, Auth, Edge Functions, Scheduler)。
+- 主なディレクトリ:
+  - `app/`: Next.js App Router ページ群。
+  - `components/`: UIコンポーネント (投稿、コメント、RSS管理など)。
+  - `lib/`: Supabaseクライアント、型定義、認証ユーティリティ。
+  - `supabase/`: SQLマイグレーション、RLSポリシー、Edge Functions (`rss-fetch` など)。
+- Docker ComposeでNext.js開発サーバを `npm run dev` で起動、ホットリロード対応。
+- 認証・セッション管理は `@supabase/auth-helpers-nextjs` / `react` を使用。

@@ -100,3 +100,48 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ feed: inserted as RssFeed }, { status: 201 });
 }
+
+export async function PATCH(request: NextRequest) {
+  const cookieStore = cookies();
+  const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+  const {
+    data: { session },
+    error: authError
+  } = await supabase.auth.getSession();
+
+  if (authError || !session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  let body: { id?: string; name?: string; url?: string; tags?: string[]; is_active?: boolean };
+  try {
+    body = await request.json();
+  } catch (error) {
+    console.error("Failed to parse request body", error);
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  if (!body.id) {
+    return NextResponse.json({ error: "id is required" }, { status: 400 });
+  }
+
+  const updates: Record<string, unknown> = {};
+  if (body.name !== undefined) updates.name = body.name.trim();
+  if (body.url !== undefined) updates.url = body.url.trim();
+  if (body.tags !== undefined) updates.tags = normalizeTags(body.tags);
+  if (body.is_active !== undefined) updates.is_active = body.is_active;
+
+  const { data, error } = await supabase
+    .from("rss_feeds")
+    .update(updates)
+    .eq("id", body.id)
+    .select("id, name, url, tags, is_active, last_fetched_at, created_at")
+    .single();
+
+  if (error || !data) {
+    console.error("Failed to update feed", error);
+    return NextResponse.json({ error: "Failed to update feed" }, { status: 500 });
+  }
+
+  return NextResponse.json({ feed: data as RssFeed });
+}

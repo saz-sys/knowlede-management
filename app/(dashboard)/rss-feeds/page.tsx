@@ -21,6 +21,7 @@ export default function RssFeedsPage() {
   const [error, setError] = useState<string | null>(null);
   const [keyword, setKeyword] = useState("");
   const [tagFilter, setTagFilter] = useState<string | null>(null);
+  const [editingFeed, setEditingFeed] = useState<RssFeed | null>(null);
 
   const loadFeeds = useCallback(async () => {
     setIsLoading(true);
@@ -46,7 +47,14 @@ export default function RssFeedsPage() {
         <p className="text-sm text-gray-600">登録済みフィードの確認と新規追加ができます。</p>
       </header>
 
-      <FeedForm onSubmitted={loadFeeds} />
+      <FeedForm
+        initialValues={editingFeed}
+        onSubmitted={() => {
+          setEditingFeed(null);
+          loadFeeds();
+        }}
+        onCancelEdit={() => setEditingFeed(null)}
+      />
 
       {isLoading ? (
         <section className="rounded-lg border bg-white p-5 text-sm text-gray-600 shadow-sm">
@@ -63,6 +71,7 @@ export default function RssFeedsPage() {
           tagFilter={tagFilter}
           onKeywordChange={setKeyword}
           onTagFilterChange={setTagFilter}
+          onEditFeed={setEditingFeed}
         />
       )}
     </div>

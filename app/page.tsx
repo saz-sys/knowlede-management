@@ -64,6 +64,28 @@ export default function HomePage() {
     }
   };
 
+  const handleRefreshRss = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch("/api/rss/refresh", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ feed_id: "5e42c893-c1e6-474f-813b-cb17f348388e" })
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.error ?? "RSSの更新に失敗しました");
+      }
+      await loadPosts({ source, tag });
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "RSSの更新に失敗しました");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (session) {
       loadPosts({ source, tag });
@@ -89,12 +111,20 @@ export default function HomePage() {
             <h1 className="text-2xl font-bold text-gray-900">投稿一覧</h1>
             <p className="mt-1 text-sm text-gray-600">ユーザー投稿とRSSで取り込んだ記事をチェックしましょう。</p>
           </div>
-          <Link
-            href="/posts/new"
-            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
-          >
-            新規投稿
-          </Link>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={handleRefreshRss}
+              className="rounded-md border border-blue-200 px-4 py-2 text-sm font-semibold text-blue-600 hover:bg-blue-50"
+            >
+              RSSを更新
+            </button>
+            <Link
+              href="/posts/new"
+              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
+            >
+              新規投稿
+            </Link>
+          </div>
         </div>
 
         <section className="rounded-lg border bg-white p-4 shadow-sm">

@@ -1,0 +1,3 @@
+- 内製PdE向けナレッジ共有Webサービスの開発。
+- 目的: 社内エンジニアの情報収集・共有を習慣化し、投稿・コメント・RSS・Slack連携でナレッジを蓄積する。
+- 構成: Next.js 14 App Router + Supabase (Postgres, Auth, Edge Functions) を無料枠で運用。Docker Composeでローカル環境を起動。
