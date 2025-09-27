@@ -36,13 +36,19 @@ function deriveTags(posts: PostWithTags[]) {
 }
 
 export default function HomePage() {
-  const { session } = useSessionContext();
+  const { session, isLoading: isSessionLoading } = useSessionContext();
   const [posts, setPosts] = useState<PostWithTags[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [source, setSource] = useState<SourceFilter>("all");
   const [tag, setTag] = useState<string | null>(null);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!isSessionLoading && !session) {
+      window.location.href = "/login?redirect=/";
+    }
+  }, [isSessionLoading, session]);
 
   const loadPosts = async (params: { source?: SourceFilter; tag?: string | null }) => {
     setIsLoading(true);
@@ -59,11 +65,21 @@ export default function HomePage() {
   };
 
   useEffect(() => {
-    loadPosts({ source, tag });
+    if (session) {
+      loadPosts({ source, tag });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [source, tag]);
+  }, [session, source, tag]);
 
   const displayPosts = useMemo(() => posts, [posts]);
+
+  if (isSessionLoading || !session) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 text-sm text-gray-600">
+        読み込み中です…
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -73,14 +89,12 @@ export default function HomePage() {
             <h1 className="text-2xl font-bold text-gray-900">投稿一覧</h1>
             <p className="mt-1 text-sm text-gray-600">ユーザー投稿とRSSで取り込んだ記事をチェックしましょう。</p>
           </div>
-          {session && (
-            <Link
-              href="/posts/new"
-              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
-            >
-              新規投稿
-            </Link>
-          )}
+          <Link
+            href="/posts/new"
+            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
+          >
+            新規投稿
+          </Link>
         </div>
 
         <section className="rounded-lg border bg-white p-4 shadow-sm">
