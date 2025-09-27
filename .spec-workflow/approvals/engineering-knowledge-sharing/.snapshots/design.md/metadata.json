@@ -1,0 +1,22 @@
+{
+  "filePath": ".spec-workflow/specs/engineering-knowledge-sharing/design.md",
+  "currentVersion": 2,
+  "snapshots": [
+    {
+      "version": 1,
+      "filename": "snapshot-001.json",
+      "timestamp": "2025-09-27T07:25:51.205Z",
+      "trigger": "initial",
+      "approvalId": "approval_1758957951154_5yp6vkqyz",
+      "approvalTitle": "engineering-knowledge-sharing design"
+    },
+    {
+      "version": 2,
+      "filename": "snapshot-002.json",
+      "timestamp": "2025-09-27T07:40:18.642Z",
+      "trigger": "approved",
+      "approvalId": "approval_1758958698988_xtl3dduwm",
+      "approvalTitle": "engineering-knowledge-sharing design v2"
+    }
+  ]
+}
