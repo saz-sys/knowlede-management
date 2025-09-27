@@ -166,7 +166,7 @@
     - Role: フロントエンドエンジニア（Next.js + Supabase）
     - Task: Implement the task for spec engineering-knowledge-sharing, first run spec-workflow-guide to get the workflow guide then implement the task: RSSフィードの一覧・追加UIとAPIを実装してユーザーが自由にフィードを管理できるようにする
     - Restrictions: 重複URLは登録しない、RLS制約を尊重しつつSupabase APIを利用する
-    - _Leverage: `createRouteHandlerClient`, `app/(dashboard)/rss/page.tsx` のレイアウトパターン
+    - _Leverage: `createRouteHandlerClient`
     - _Requirements: REQ-003
     - Success: 管理ページでフィード追加が成功し、その場で一覧に反映される
     - Instructions: tasks.mdの当該行を開始時に`- [ ]`→`- [-]`、完了時に`- [x]`へ更新すること

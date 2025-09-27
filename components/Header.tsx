@@ -16,9 +16,6 @@ export default function Header() {
           </Link>
           {session && (
             <nav className="hidden gap-3 text-sm font-medium text-slate-600 sm:flex">
-              <Link href="/posts" className="hover:text-brand-dark">
-                投稿一覧
-              </Link>
               <Link href="/posts/new" className="hover:text-brand-dark">
                 新規投稿
               </Link>
