@@ -1,6 +1,5 @@
-import { createBrowserClient } from "@supabase/auth-helpers-nextjs";
-import { env } from "@/lib/config/env";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 export const createSupabaseClient = () => {
-  return createBrowserClient(env.supabaseUrl, env.supabaseAnonKey);
+  return createClientComponentClient();
 };
