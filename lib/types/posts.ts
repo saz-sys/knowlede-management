@@ -7,6 +7,7 @@ export interface Post {
   content?: string;
   summary?: string;
   notified_channels?: string[];
+  metadata?: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
   author?: {

@@ -102,13 +102,14 @@
     - Success: 検索結果とタグインサイトが表示され、UX KPIを満たす
     - Instructions: tasks.mdの当該行を開始時に`- [ ]`→`- [-]`、完了時に`- [x]`へ更新すること
 
-- [ ] TASK-007 RSS Edge Functionと承認UI
+- [-] TASK-007 RSS Edge Functionと承認UI
   - 対応要件: REQ-003
   - 対応ファイル/モジュール: `supabase/functions/rss-fetch/index.ts`, `supabase/functions/_shared/open-graph.ts`, `app/(dashboard)/rss/page.tsx`, `app/api/rss/approve/route.ts`
   - 作業内容:
     - Supabase Edge FunctionでRSSを取得し、要約・タグ推定を行う
     - 定期スケジューラ設定用のREADMEガイドを追加
     - 承認キューUIとAPIでpending記事を公開
+    - Edge Functionをローカルでテストし、結果をログ出力する
   - 完了条件: Edge Functionがローカル検証に通り、UI/承認APIから投稿化できる
   - _Prompt:
     - Role: サーバレスエンジニア（Supabase Edge Functions）
@@ -153,19 +154,35 @@
     - Success: KPIダッシュボード向けデータが取得でき、監査ログが90日以上保持
     - Instructions: tasks.mdの当該行を開始時に`- [ ]`→`- [-]`、完了時に`- [x]`へ更新すること
 
-- [ ] TASK-010 テスト戦略実装（ユニット/E2E）
-  - 対応要件: 全要件（品質保証）
-  - 対応ファイル/モジュール: `tests/unit/*.test.ts`, `tests/e2e/*.spec.ts`, `playwright.config.ts`
+- [x] TASK-011 RSSフィード管理UIの実装
+  - 対応要件: REQ-003
+  - 対応ファイル/モジュール: `app/(dashboard)/rss-feeds/page.tsx`, `app/api/rss-feeds/route.ts`, `components/rss/FeedList.tsx`, `components/rss/FeedForm.tsx`
   - 作業内容:
-    - 投稿/コメント/検索/通知のユニットテストを作成
-    - Playwrightで主要ユーザージャーニーのE2Eテストを整備
-    - GitHub Actionsでテストを自動実行するワークフローを追加
-  - 完了条件: `npm run test` と `npm run test:e2e` が成功し、CIがグリーン
+    - 登録済みRSSフィードを一覧表示し、ステータスやタグを確認できる管理ページを作成
+    - 新規フィード追加フォームとバリデーションを実装し、Supabaseに登録
+    - 追加後に一覧へ反映されるようクライアント側の状態管理を整備
+  - 完了条件: RSSフィードをUIから追加・確認でき、`rss_feeds`テーブルにデータが保存される
   - _Prompt:
-    - Role: QAオートメーションエンジニア
-    - Task: Implement the task for spec engineering-knowledge-sharing, first run spec-workflow-guide to get the workflow guide then implement the task: 単体テストとE2Eテストを実装し、CIで自動実行されるよう設定する
-    - Restrictions: 外部依存はモック化、CIで環境変数を安全に扱う
-    - _Leverage: Testing Library, Playwright, GitHub Actionsテンプレート
-    - _Requirements: 全要件（品質保証）
-    - Success: テストが高いカバレッジで安定動作し、CIがパス
+    - Role: フロントエンドエンジニア（Next.js + Supabase）
+    - Task: Implement the task for spec engineering-knowledge-sharing, first run spec-workflow-guide to get the workflow guide then implement the task: RSSフィードの一覧・追加UIとAPIを実装してユーザーが自由にフィードを管理できるようにする
+    - Restrictions: 重複URLは登録しない、RLS制約を尊重しつつSupabase APIを利用する
+    - _Leverage: `createRouteHandlerClient`
+    - _Requirements: REQ-003
+    - Success: 管理ページでフィード追加が成功し、その場で一覧に反映される
+    - Instructions: tasks.mdの当該行を開始時に`- [ ]`→`- [-]`、完了時に`- [x]`へ更新すること
+
+- [x] TASK-012 RSS承認フローの撤廃
+  - 対応要件: REQ-003
+  - 対応ファイル/モジュール: `supabase/functions/rss-fetch/index.ts`, `supabase/migrations/20250927_init.sql`, `supabase/policies/rss.sql`
+  - 作業内容:
+    - Edge Functionを承認不要な自動投稿化に変更
+    - 承認キュー関連テーブル・ポリシー・UI・APIを削除
+  - 完了条件: RSS承認機構が存在せず、自動で投稿へ登録される
+  - _Prompt:
+    - Role: フルスタックエンジニア（Next.js / Supabase）
+    - Task: Implement the task for spec engineering-knowledge-sharing, first run spec-workflow-guide to get the workflow guide then implement the task: RSS承認ワークフローを撤廃し、自動取り込みに一本化するためUI・API・Edge Functionを整理する
+    - Restrictions: 既存データの整合性を崩さないようマイグレーションを慎重に行う、削除箇所は念のためバックアップ
+    - _Leverage: `supabase/functions/rss-fetch`
+    - _Requirements: REQ-003
+    - Success: RSSが承認なしで自動投稿され、承認関連コードが残っていない
     - Instructions: tasks.mdの当該行を開始時に`- [ ]`→`- [-]`、完了時に`- [x]`へ更新すること
