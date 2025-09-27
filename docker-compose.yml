@@ -1,0 +1,19 @@
+version: "3.9"
+
+services:
+  web:
+    build: .
+    container_name: eks-web
+    working_dir: /app
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+    environment:
+      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+    command: sh -c "npm install && npm run dev -- --hostname 0.0.0.0"
+
+volumes:
+  node_modules:
