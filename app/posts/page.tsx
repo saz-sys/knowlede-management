@@ -18,7 +18,15 @@ export default async function PostsPage() {
   const { data: posts, error: fetchError } = await supabase
     .from("posts")
     .select(
-      "id, author_id, title, summary, content, url, created_at"
+      `
+        id,
+        title,
+        summary,
+        content,
+        url,
+        created_at,
+        author_email
+      `
     )
     .order("created_at", { ascending: false });
 
@@ -51,7 +59,7 @@ export default async function PostsPage() {
               className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm transition hover:shadow-md"
             >
               <div className="flex items-center justify-between text-xs text-gray-500">
-                <span>投稿者ID: {post.author_id}</span>
+                <span>投稿者: {post.author_email ?? "不明"}</span>
                 <span>{new Date(post.created_at).toLocaleString("ja-JP")}</span>
               </div>
 

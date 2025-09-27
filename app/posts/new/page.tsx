@@ -25,6 +25,9 @@ export default async function NewPostPage() {
 
       <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
         <PostEditor />
+        <p className="mt-4 text-sm text-gray-500">
+          投稿すると、投稿一覧に{session.user.email}として表示されます。
+        </p>
       </div>
     </div>
   );

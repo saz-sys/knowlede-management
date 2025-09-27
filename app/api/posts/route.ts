@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
       .from("posts")
       .insert({
         author_id: session.user.id,
+        author_email: session.user.email,
         title: title.trim(),
         url: url.trim(),
         content: content?.trim() ?? null,
