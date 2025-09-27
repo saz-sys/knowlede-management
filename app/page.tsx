@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useSessionContext } from "@supabase/auth-helpers-react";
 import type { Post } from "@/lib/types/posts";
@@ -11,7 +11,7 @@ interface PostWithTags extends Post {
   post_tags?: { tag: { id: string; name: string } }[];
 }
 
-async function fetchPosts(params: { source?: SourceFilter; tag?: string }) {
+async function fetchPosts(params: { source?: SourceFilter; tag?: string } = {}) {
   const query = new URLSearchParams();
   if (params.source && params.source !== "all") {
     query.set("source", params.source);
@@ -42,7 +42,7 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
   const [source, setSource] = useState<SourceFilter>("all");
   const [tag, setTag] = useState<string | null>(null);
-  const [availableTags, setAvailableTags] = useState<string[]>([]);
+  const hasLoadedOnceRef = useRef(false);
 
   useEffect(() => {
     if (!isSessionLoading && !session) {
@@ -50,13 +50,12 @@ export default function HomePage() {
     }
   }, [isSessionLoading, session]);
 
-  const loadPosts = async (params: { source?: SourceFilter; tag?: string | null }) => {
+  const loadPosts = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await fetchPosts({ source: params.source, tag: params.tag ?? undefined });
+      const data = await fetchPosts();
       setPosts(data);
-      setAvailableTags(deriveTags(data));
     } catch (err) {
       setError(err instanceof Error ? err.message : "投稿の取得に失敗しました");
     } finally {
@@ -78,7 +77,7 @@ export default function HomePage() {
         const data = await response.json().catch(() => null);
         throw new Error(data?.error ?? "RSSの更新に失敗しました");
       }
-      await loadPosts({ source, tag });
+      await loadPosts();
     } catch (err) {
       alert(err instanceof Error ? err.message : "RSSの更新に失敗しました");
     } finally {
@@ -87,13 +86,25 @@ export default function HomePage() {
   };
 
   useEffect(() => {
-    if (session) {
-      loadPosts({ source, tag });
+    if (session && !hasLoadedOnceRef.current) {
+      hasLoadedOnceRef.current = true;
+      loadPosts();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session, source, tag]);
+  }, [session]);
 
-  const displayPosts = useMemo(() => posts, [posts]);
+  const availableTags = useMemo(() => deriveTags(posts), [posts]);
+
+  const displayPosts = useMemo(() => {
+    return posts.filter((post) => {
+      const isRss = post.metadata?.source === "rss";
+      const matchesSource =
+        source === "all" ? true : source === "manual" ? !isRss : isRss;
+      const matchesTag = tag
+        ? post.post_tags?.some((item) => item.tag.name === tag) ?? false
+        : true;
+      return matchesSource && matchesTag;
+    });
+  }, [posts, source, tag]);
 
   if (isSessionLoading || !session) {
     return (
