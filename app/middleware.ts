@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs";
 
 const PUBLIC_PATHS = ["/", "/login", "/_next", "/api/public"];
 
@@ -7,19 +8,26 @@ const isPublicPath = (pathname: string) =>
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  
+  // パブリックパスは認証チェックをスキップ
   if (isPublicPath(pathname)) {
     return NextResponse.next();
   }
 
-  const supabaseToken = request.cookies.get("sb-access-token");
+  const res = NextResponse.next();
+  const supabase = createMiddlewareClient({ req: request, res });
 
-  if (!supabaseToken) {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  return NextResponse.next();
+  return res;
 }
 
 export const config = {
