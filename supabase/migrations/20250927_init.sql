@@ -40,15 +40,6 @@ create table if not exists public.post_tags (
   primary key (post_id, tag_id)
 );
 
--- Knowledge cards
-create table if not exists public.knowledge_cards (
-  id uuid primary key default gen_random_uuid(),
-  post_id uuid references public.posts(id) on delete cascade,
-  summary text not null,
-  created_by uuid not null,
-  created_at timestamptz default now()
-);
-
 -- RSS feeds
 create table if not exists public.rss_feeds (
   id uuid primary key default gen_random_uuid(),
@@ -93,7 +84,6 @@ create table if not exists public.event_logs (
 -- Enable Row Level Security
 alter table public.posts enable row level security;
 alter table public.comments enable row level security;
-alter table public.knowledge_cards enable row level security;
 alter table public.rss_feeds enable row level security;
 alter table public.rss_items enable row level security;
 alter table public.slack_channels enable row level security;

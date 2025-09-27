@@ -2,10 +2,7 @@ import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import CommentThread from "@/components/comments/CommentThread";
-import KnowledgeCardList from "@/components/comments/KnowledgeCardList";
-import KnowledgeCardForm from "@/components/comments/KnowledgeCardForm";
 import { Comment } from "@/lib/types/comments";
-import { KnowledgeCard } from "@/lib/types/knowledge-cards";
 
 interface PostDetailPageProps {
   params: {
@@ -60,24 +57,6 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
 
   if (commentsError) {
     console.error("Comments fetch error:", commentsError);
-  }
-
-  const { data: knowledgeCards, error: cardsError } = await supabase
-    .from("knowledge_cards")
-    .select(`
-      id,
-      post_id,
-      title,
-      content,
-      created_by,
-      created_at,
-      updated_at
-    `)
-    .eq("post_id", params.id)
-    .order("created_at", { ascending: false });
-
-  if (cardsError) {
-    console.error("Knowledge cards fetch error:", cardsError);
   }
 
   const commentMap = new Map();
@@ -149,16 +128,6 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
         <CommentThread
           postId={post.id}
           initialComments={(rootComments as Comment[]) || []}
-        />
-      </section>
-
-      <section className="bg-white rounded-lg shadow-sm border p-6">
-        <KnowledgeCardList
-          cards={(knowledgeCards as KnowledgeCard[]) || []}
-        />
-        
-        <KnowledgeCardForm
-          postId={post.id}
         />
       </section>
     </div>
