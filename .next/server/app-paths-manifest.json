@@ -1,5 +1,8 @@
 {
+  "/_not-found/page": "app/_not-found/page.js",
   "/page": "app/page.js",
-  "/(auth)/login/page": "app/(auth)/login/page.js",
-  "/auth/callback/page": "app/auth/callback/page.js"
+  "/api/posts/route": "app/api/posts/route.js",
+  "/posts/page": "app/posts/page.js",
+  "/posts/new/page": "app/posts/new/page.js",
+  "/posts/[id]/page": "app/posts/[id]/page.js"
 }

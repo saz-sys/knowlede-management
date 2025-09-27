@@ -53,7 +53,7 @@
 
 - [x] TASK-004 投稿作成UIとAPIエンドポイント
   - 対応要件: REQ-001, REQ-004
-  - 対応ファイル/モジュール: `app/(dashboard)/posts/new/page.tsx`, `components/posts/PostEditor.tsx`, `app/api/posts/route.ts`
+  - 対応ファイル/モジュール: `app/posts/new/page.tsx`, `components/PostEditor.tsx`, `app/api/posts/route.ts`
   - 作業内容:
     - 記事URL入力・コメント・タグ選択・Slack通知設定を含むフォームを実装
     - Supabaseに投稿を保存し、Slack通知キューを作成するAPIを実装
@@ -68,7 +68,7 @@
     - Success: 新規投稿がDBに保存され、通知設定がキューに記録される
     - Instructions: tasks.mdの当該行を開始時に`- [ ]`→`- [-]`、完了時に`- [x]`へ更新すること
 
-- [-] TASK-005 コメント機能とナレッジカード作成
+- [x] TASK-005 コメント機能とナレッジカード作成
   - 対応要件: REQ-002
   - 対応ファイル/モジュール: `app/api/comments/route.ts`, `components/comments/CommentThread.tsx`, `components/comments/KnowledgeCardForm.tsx`
   - 作業内容:
@@ -85,17 +85,17 @@
     - Success: コメントと要約カードがDBへ保存され、UIが即座に反映
     - Instructions: tasks.mdの当該行を開始時に`- [ ]`→`- [-]`、完了時に`- [x]`へ更新すること
 
-- [ ] TASK-006 検索・タグナビゲーション機能
+- [-] TASK-006 検索・タグナビゲーション機能
   - 対応要件: REQ-005
-  - 対応ファイル/モジュール: `app/(dashboard)/search/page.tsx`, `app/api/search/route.ts`, `components/search/TagFilter.tsx`
+  - 対応ファイル/モジュール: `app/posts/page.tsx`, `app/api/posts/route.ts`, `components/SearchBar.tsx`
   - 作業内容:
-    - Postgres FTSを利用した全文検索APIを実装
-    - タグ・投稿者・期間フィルタをUIに実装し、人気タグ/関連タグを表示
-    - レスポンスをキャッシュ（Supabase cache）して性能を確保
-  - 完了条件: 検索が1秒以内（p90）で返り、複数フィルタを組み合わせても動作
+    - 投稿リストに検索フォームを追加し、タイトル・本文を対象にフィルタ
+    - 投稿者名・タグで絞り込み、人気タグをランキング表示
+    - Supabaseの全文検索（`tsvector`）を利用し、レスポンスのキャッシュを検討
+  - 完了条件: 検索結果が1秒以内に返る（p90）、複数フィルタが併用可能
   - _Prompt:
     - Role: フルスタックエンジニア（検索体験）
-    - Task: Implement the task for spec engineering-knowledge-sharing, first run spec-workflow-guide to get the workflow guide then implement the task: フルテキスト検索APIと検索UIを実装し、タグナビゲーションを提供する
+    - Task: Implement the task for spec engineering-knowledge-sharing, first run spec-workflow-guide to get the workflow guide then implement the task: 投稿一覧に検索・フィルタ機能を追加し、タグナビゲーションを提供する
     - Restrictions: N+1クエリを避ける、不要な再レンダリングを防ぐ
     - _Leverage: Supabase Postgres FTS, React Suspense/Streaming UI
     - _Requirements: REQ-005
