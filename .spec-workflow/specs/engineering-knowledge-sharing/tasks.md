@@ -1,6 +1,6 @@
 # engineering-knowledge-sharing タスク分解
 
-- [ ] TASK-001 Next.js基盤とSupabaseクライアント初期化
+- [x] TASK-001 Next.js基盤とSupabaseクライアント初期化
   - 対応要件: REQ-001, REQ-005, 非機能（認証・性能）
   - 対応ファイル/モジュール: `package.json`, `next.config.js`, `app/layout.tsx`, `lib/supabase/client.ts`, `lib/config/env.ts`
   - 作業内容:
@@ -17,7 +17,7 @@
     - Success: Supabaseクライアントが型安全に初期化され、アプリ全体で使用できる
     - Instructions: tasks.mdの当該行を開始時に`- [ ]`→`- [-]`、完了時に`- [x]`へ更新すること
 
-- [ ] TASK-002 Supabaseスキーマ定義とRLSポリシー実装
+- [x] TASK-002 Supabaseスキーマ定義とRLSポリシー実装
   - 対応要件: REQ-001〜REQ-005, 非機能（セキュリティ）
   - 対応ファイル/モジュール: `supabase/migrations/20250927_init.sql`, `supabase/seed/initial_tags.sql`, `supabase/policies/*.sql`
   - 作業内容:
@@ -34,7 +34,7 @@
     - Success: マイグレーション適用後に全テーブル・ポリシーが反映され、想定クエリが動作
     - Instructions: tasks.mdの当該行を開始時に`- [ ]`→`- [-]`、完了時に`- [x]`へ更新すること
 
-- [ ] TASK-003 Supabase Auth連携とアクセスガード
+- [x] TASK-003 Supabase Auth連携とアクセスガード
   - 対応要件: 非機能（認証・アクセス制御）
   - 対応ファイル/モジュール: `app/middleware.ts`, `lib/auth/server.ts`, `app/(auth)/login/page.tsx`
   - 作業内容:
@@ -51,7 +51,7 @@
     - Success: 認証フローがE2Eで動作し、保護ページへの直接アクセスが制限される
     - Instructions: tasks.mdの当該行を開始時に`- [ ]`→`- [-]`、完了時に`- [x]`へ更新すること
 
-- [ ] TASK-004 投稿作成UIとAPIエンドポイント
+- [x] TASK-004 投稿作成UIとAPIエンドポイント
   - 対応要件: REQ-001, REQ-004
   - 対応ファイル/モジュール: `app/(dashboard)/posts/new/page.tsx`, `components/posts/PostEditor.tsx`, `app/api/posts/route.ts`
   - 作業内容:
@@ -68,7 +68,7 @@
     - Success: 新規投稿がDBに保存され、通知設定がキューに記録される
     - Instructions: tasks.mdの当該行を開始時に`- [ ]`→`- [-]`、完了時に`- [x]`へ更新すること
 
-- [ ] TASK-005 コメント機能とナレッジカード作成
+- [x] TASK-005 コメント機能とナレッジカード作成
   - 対応要件: REQ-002
   - 対応ファイル/モジュール: `app/api/comments/route.ts`, `components/comments/CommentThread.tsx`, `components/comments/KnowledgeCardForm.tsx`
   - 作業内容:
