@@ -186,3 +186,89 @@
     - _Requirements: REQ-003
     - Success: RSSが承認なしで自動投稿され、承認関連コードが残っていない
     - Instructions: tasks.mdの当該行を開始時に`- [ ]`→`- [-]`、完了時に`- [x]`へ更新すること
+
+- [ ] TASK-013 UI/UX改善スプリント
+  - 対応要件: 利用頻度向上施策
+  - 対応ファイル/モジュール: `app/page.tsx`, `components/common/*`, `styles/*`
+  - 作業内容:
+    - 投稿一覧やフィルタのレイアウトを再検討し、視認性と操作性を向上
+    - RSS投稿と手動投稿の視覚的区別を改善
+    - レスポンシブ対応やローディング状態のデザインを調整
+  - 完了条件: 主要画面でのユーザビリティ課題が改善され、デザインレビューを通過
+  - _Prompt:
+    - Role: UI/UXデザイナー + フロントエンドエンジニア
+    - Task: Implement the task for spec engineering-knowledge-sharing, first run spec-workflow-guide to get the workflow guide then implement the task: 既存画面のUI/UX改善（投稿一覧・フィルタ・レスポンシブ・ローディング）を行い、視認性と操作性を高める
+    - Restrictions: 既存コンポーネント設計を尊重しつつ無駄な再レンダリングを避ける
+    - _Leverage: デザインレビュー結果、ユーザーフィードバック
+    - _Requirements: 利用頻度向上施策
+    - Success: 改善箇所のユーザビリティが向上し、テストで問題が確認されない
+    - Instructions: tasks.mdの当該行を開始時に`- [ ]`→`- [-]`、完了時に`- [x]`へ更新すること
+
+- [ ] TASK-014 タイトル／ロゴ刷新
+  - 対応要件: ブランディング・利用促進
+  - 対応ファイル/モジュール: `components/Header.tsx`, `public/branding/*`, `public/favicon.ico`, `public/site.webmanifest`, `app/layout.tsx`
+  - 作業内容:
+    - サービス名称を見直し、ヘッダーやメタ情報に反映
+    - 新しいロゴ／アイコンを作成し、アプリ全体のブランディングを更新
+    - Favicon（`public/favicon.ico`）と関連メタタグ（`manifest`, `apple-touch-icon`）を新ロゴに合わせて更新
+    - OG画像も含めて統一されたデザインに更新
+  - 完了条件: 新タイトル／ロゴおよびFaviconが全画面に反映され、アクセシビリティ要件を満たす
+  - _Prompt:
+    - Role: フロントエンドエンジニア（ブランディング対応）
+    - Task: Implement the task for spec engineering-knowledge-sharing, first run spec-workflow-guide to get the workflow guide then implement the task: サービスのタイトルとロゴを刷新し、ヘッダー・favicon・OG画像など全体のブランディングを統一する
+    - Restrictions: 既存の配色・コンポーネント階層を崩さずに調整、画像アセットは最適化
+    - _Leverage: デザイン案、`public/branding/*`
+    - _Requirements: ブランディング・利用促進
+    - Success: 新ロゴ／タイトルが反映され、主要ページでの表示が確認できる
+    - Instructions: tasks.mdの当該行を開始時に`- [ ]`→`- [-]`、完了時に`- [x]`へ更新すること
+
+- [ ] TASK-015 社員リソースリンクディレクトリ
+  - 対応要件: 情報発信チャネルの可視化（新規）
+  - 対応ファイル/モジュール: `app/(dashboard)/resources/page.tsx`, `app/api/resources/route.ts`, `components/resources/*`, `supabase/migrations/*`
+  - 作業内容:
+    - 社員ごとの外部リンク（Zenn/Qiita/GitHub等）を管理するテーブルとAPIを実装
+    - 一覧UIで所属・タグフィルタ、最終更新日表示を提供
+    - 登録・編集・無効化フローとRLSポリシーを整備
+  - 完了条件: リソースリンクを登録・閲覧・更新でき、権限とRLSが動作する
+  - _Prompt:
+    - Role: フルスタックエンジニア（Next.js + Supabase）
+    - Task: Implement the task for spec engineering-knowledge-sharing, first run spec-workflow-guide to get the workflow guide then implement the task: 社員リソースリンクディレクトリのAPI・UI・データモデルを実装し、タグ／所属フィルタと更新履歴表示を提供する
+    - Restrictions: 重複リンク登録を避ける、管理ロールのみ編集可
+    - _Leverage: 既存RSSフィード管理UI, Supabase CRUDパターン
+    - _Requirements: 情報発信チャネルの可視化
+    - Success: UIからリンク管理が完結し、テーブルに正しく保存される
+    - Instructions: tasks.mdの当該行を開始時に`- [ ]`→`- [-]`、完了時に`- [x]`へ更新すること
+
+- [ ] TASK-016 あとで読む（ブックマーク）機能
+  - 対応要件: 利用頻度向上施策（新規）
+  - 対応ファイル/モジュール: `app/api/bookmarks/route.ts`, `components/bookmarks/*`, `app/page.tsx`, `supabase/migrations/*`
+  - 作業内容:
+    - ブックマークテーブルとAPIを追加し、投稿カードから登録/解除できるようにする
+    - 期限指定リマインド（Slack/メール）を設定し、定期ジョブで通知
+    - ダッシュボードに「あとで読む」一覧と既読管理UIを実装
+  - 完了条件: ブックマーク登録/解除・リマインド通知・一覧表示が動作
+  - _Prompt:
+    - Role: フルスタックエンジニア（通知＋UI）
+    - Task: Implement the task for spec engineering-knowledge-sharing, first run spec-workflow-guide to get the workflow guide then implement the task: ブックマークAPIとUI、リマインド通知（Slack/メール）を実装し、「あとで読む」体験を提供する
+    - Restrictions: 通知頻度を制御しスパム化を防ぐ、RLSで本人のみ閲覧可
+    - _Leverage: 既存RSS更新ボタン・通知実装、Supabase Edge Functions
+    - _Requirements: 利用頻度向上施策
+    - Success: テスト用Slackチャンネルでリマインドが確認でき、UIで状態が反映
+    - Instructions: tasks.mdの当該行を開始時に`- [ ]`→`- [-]`、完了時に`- [x]`へ更新すること
+
+- [ ] TASK-017 URL重複検知と既存投稿案内
+  - 対応要件: 重複投稿防止（新規）
+  - 対応ファイル/モジュール: `app/api/posts/route.ts`, `app/(dashboard)/posts/new/page.tsx`, `components/posts/PostEditor.tsx`, `supabase/migrations/*`
+  - 作業内容:
+    - `posts`テーブルにURLユニーク制約を追加し、既存データへの影響を調整
+    - 投稿APIで重複エラー時に既存投稿情報（タイトル/投稿者/投稿日）を返す
+    - フロントエンドでモーダル表示し、既存投稿への導線を提供
+  - 完了条件: 重複URLを登録できず、既存投稿案内が表示される
+  - _Prompt:
+    - Role: フルスタックエンジニア（Next.js + Supabase）
+    - Task: Implement the task for spec engineering-knowledge-sharing, first run spec-workflow-guide to get the workflow guide then implement the task: 投稿APIにURL重複検知と既存投稿案内モーダルを実装し、管理ロールの例外処理も整備する
+    - Restrictions: 既存データ移行を安全に行う、例外時の監査ログを記録
+    - _Leverage: 既存投稿作成API, Supabaseバリデーション
+    - _Requirements: 重複投稿防止
+    - Success: 手動テストで重複投稿がブロックされ、案内モーダルが表示される
+    - Instructions: tasks.mdの当該行を開始時に`- [ ]`→`- [-]`、完了時に`- [x]`へ更新すること

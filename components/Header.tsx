@@ -33,12 +33,15 @@ export default function Header() {
             PdE Knowledge Hub
           </Link>
           {session && (
-            <nav className="hidden gap-3 text-sm font-medium text-slate-600 sm:flex">
+            <nav className="hidden items-center gap-3 text-sm font-medium text-slate-600 sm:flex">
               <Link href="/posts/new" className="hover:text-brand-dark">
                 新規投稿
               </Link>
               <Link href="/rss-feeds" className="hover:text-brand-dark">
                 RSSフィード
+              </Link>
+              <Link href="/resources" className="hover:text-brand-dark">
+                リソース
               </Link>
             </nav>
           )}

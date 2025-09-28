@@ -1,0 +1,30 @@
+{
+  "filePath": ".spec-workflow/specs/tag-search-and-resource-links/requirements.md",
+  "currentVersion": 3,
+  "snapshots": [
+    {
+      "version": 1,
+      "filename": "snapshot-001.json",
+      "timestamp": "2025-09-28T01:55:25.597Z",
+      "trigger": "initial",
+      "approvalId": "approval_1759024525588_04sfp64gd",
+      "approvalTitle": "tag-search-and-resource-links requirements"
+    },
+    {
+      "version": 2,
+      "filename": "snapshot-002.json",
+      "timestamp": "2025-09-28T01:58:17.532Z",
+      "trigger": "approved",
+      "approvalId": "approval_1759024680127_5cdwzuk13",
+      "approvalTitle": "tag-search-and-resource-links requirements v2"
+    },
+    {
+      "version": 3,
+      "filename": "snapshot-003.json",
+      "timestamp": "2025-09-28T01:58:18.113Z",
+      "trigger": "approved",
+      "approvalId": "approval_1759024525588_04sfp64gd",
+      "approvalTitle": "tag-search-and-resource-links requirements"
+    }
+  ]
+}
