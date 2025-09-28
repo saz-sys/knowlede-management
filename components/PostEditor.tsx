@@ -117,7 +117,7 @@ export default function PostEditor({ onSuccess }: PostEditorProps) {
           value={form.title}
           onChange={handleChange}
           placeholder="投稿タイトル"
-          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring"
+          className="w-full rounded-md border border-cyan-300 px-3 py-2 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200 bg-white/80"
         />
       </div>
 
@@ -133,7 +133,7 @@ export default function PostEditor({ onSuccess }: PostEditorProps) {
           value={form.url}
           onChange={handleChange}
           placeholder="https://example.com/article"
-          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring"
+          className="w-full rounded-md border border-cyan-300 px-3 py-2 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200 bg-white/80"
         />
       </div>
 
@@ -148,7 +148,7 @@ export default function PostEditor({ onSuccess }: PostEditorProps) {
           onChange={handleChange}
           placeholder="記事の要約やポイント"
           rows={3}
-          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring"
+          className="w-full rounded-md border border-cyan-300 px-3 py-2 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200 bg-white/80"
         />
       </div>
 
@@ -163,7 +163,7 @@ export default function PostEditor({ onSuccess }: PostEditorProps) {
           onChange={handleChange}
           placeholder="自身のコメントや補足"
           rows={6}
-          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring"
+          className="w-full rounded-md border border-cyan-300 px-3 py-2 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200 bg-white/80"
         />
       </div>
 
@@ -177,7 +177,7 @@ export default function PostEditor({ onSuccess }: PostEditorProps) {
           value={form.tags}
           onChange={handleChange}
           placeholder="nextjs, supabase, rss"
-          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring"
+          className="w-full rounded-md border border-cyan-300 px-3 py-2 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200 bg-white/80"
         />
       </div>
 
@@ -191,7 +191,7 @@ export default function PostEditor({ onSuccess }: PostEditorProps) {
           value={form.notifyChannels}
           onChange={handleChange}
           placeholder="#engineering, #pde-knowledge"
-          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring"
+          className="w-full rounded-md border border-cyan-300 px-3 py-2 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200 bg-white/80"
         />
       </div>
 
@@ -205,14 +205,14 @@ export default function PostEditor({ onSuccess }: PostEditorProps) {
         <button
           type="button"
           onClick={() => router.back()}
-          className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          className="rounded-md border border-cyan-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-cyan-50"
         >
           キャンセル
         </button>
         <button
           type="submit"
           disabled={isSubmitting}
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                className="ocean-button disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSubmitting ? "投稿中..." : "投稿する"}
         </button>

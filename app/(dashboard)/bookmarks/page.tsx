@@ -16,7 +16,7 @@ export default function BookmarksPage() {
   return (
     <div className="space-y-6 p-6">
       <header>
-        <h1 className="text-2xl font-bold text-gray-900">あとで読む</h1>
+        <h1 className="text-3xl font-bold ocean-text">📚 ブックマーク</h1>
         <p className="text-sm text-gray-600">ブックマークした記事を管理できます。</p>
       </header>
 
@@ -27,8 +27,8 @@ export default function BookmarksPage() {
             onClick={() => setFilter(option.value as FilterType)}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
               filter === option.value
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                ? "ocean-button"
+                : "bg-cyan-100 text-cyan-700 hover:bg-cyan-200"
             }`}
           >
             {option.label}

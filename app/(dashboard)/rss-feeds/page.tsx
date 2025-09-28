@@ -64,7 +64,7 @@ export default function RssFeedsPage() {
   return (
     <div className="space-y-6 p-6">
       <header>
-        <h1 className="text-2xl font-bold text-gray-900">RSSフィード管理</h1>
+        <h1 className="text-3xl font-bold ocean-text">📡 RSSフィード管理</h1>
         <p className="text-sm text-gray-600">Tech ReefでRSSフィードを管理できます。</p>
       </header>
 

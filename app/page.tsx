@@ -180,23 +180,23 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen">
       <main className="mx-auto max-w-4xl px-4 py-8 space-y-6">
         <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Tech Reef</h1>
-            <p className="mt-1 text-sm text-gray-600">エンジニアの知識共有プラットフォーム</p>
+            <h1 className="text-3xl font-bold ocean-text">🌊 Tech Reef</h1>
+            <p className="mt-1 text-sm text-slate-700">エンジニアの知識共有プラットフォーム</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={handleRefreshRss}
-              className="rounded-md border border-blue-200 px-4 py-2 text-sm font-semibold text-blue-600 hover:bg-blue-50"
+              className="ocean-button"
             >
               RSSを更新
             </button>
             <Link
               href="/posts/new"
-              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
+              className="coral-button"
             >
               新規投稿
             </Link>
@@ -272,7 +272,7 @@ export default function HomePage() {
         ) : (
           <div className="space-y-4">
             {displayPosts.map((post) => (
-              <article key={post.id} className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm transition hover:shadow-md">
+              <article key={post.id} className="ocean-card p-5">
                 <div className="flex items-center justify-between text-xs text-gray-500">
                   <span>投稿者: {post.author_email ?? "不明"}</span>
                   <span>{new Date(post.created_at).toLocaleString("ja-JP")}</span>
