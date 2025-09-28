@@ -31,8 +31,13 @@ export default function Header() {
     <header className="border-b border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <div className="flex items-center gap-4">
-          <Link href="/" className="text-lg font-semibold text-slate-900 hover:text-brand">
-            PdE Knowledge Hub
+          <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
+            <img 
+              src="/branding/logo.png" 
+              alt="Tech Reef" 
+              className="h-16"
+              style={{ height: '64px', width: '200px', objectFit: 'contain' }}
+            />
           </Link>
           {session && (
             <nav className="hidden items-center gap-3 text-sm font-medium text-slate-600 sm:flex">

@@ -134,8 +134,8 @@ export default function HomePage() {
       <main className="mx-auto max-w-4xl px-4 py-8 space-y-6">
         <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">投稿一覧</h1>
-            <p className="mt-1 text-sm text-gray-600">ユーザー投稿とRSSで取り込んだ記事をチェックしましょう。</p>
+            <h1 className="text-2xl font-bold text-gray-900">Tech Reef</h1>
+            <p className="mt-1 text-sm text-gray-600">エンジニアの知識共有プラットフォーム</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <button
