@@ -29,7 +29,7 @@ interface FeedDownload {
 
 const REQUEST_TIMEOUT_MS = 10000;
 const MAX_ITEMS_PER_FEED = 10;
-const MAX_FEEDS_PER_RUN = 1;
+const MAX_FEEDS_PER_RUN = 10;
 
 function createSupabaseClient() {
   const url = Deno.env.get("SUPABASE_URL");
