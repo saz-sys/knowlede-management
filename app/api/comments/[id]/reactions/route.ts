@@ -102,7 +102,7 @@ export async function DELETE(
     // リアクション削除
     const currentReactions = comment.reactions || {};
     const emojiUsers = currentReactions[emoji] || [];
-    const filteredUsers = emojiUsers.filter(userId => userId !== session.user.id);
+    const filteredUsers = emojiUsers.filter((userId: string) => userId !== session.user.id);
 
     const updatedReactions = {
       ...currentReactions,

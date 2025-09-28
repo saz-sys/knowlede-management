@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useSessionContext } from "@supabase/auth-helpers-react";
 import type { Post } from "@/lib/types/posts";
+import BookmarkButton from "@/components/bookmarks/BookmarkButton";
 
 type SourceFilter = "all" | "manual" | "rss";
 
@@ -244,19 +245,22 @@ export default function HomePage() {
                 </div>
 
                 <div className="mt-4 flex items-center justify-between text-sm">
-                  {post.url && (
-                    <a
-                      href={post.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800"
-                    >
-                      記事を開く →
-                    </a>
-                  )}
-                  <Link href={`/posts/${post.id}`} className="text-blue-600 hover:text-blue-800">
-                    詳細を見る
-                  </Link>
+                  <div className="flex items-center gap-2">
+                    {post.url && (
+                      <a
+                        href={post.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800"
+                      >
+                        記事を開く →
+                      </a>
+                    )}
+                    <Link href={`/posts/${post.id}`} className="text-blue-600 hover:text-blue-800">
+                      詳細を見る
+                    </Link>
+                  </div>
+                  <BookmarkButton postId={post.id} />
                 </div>
               </article>
             ))}

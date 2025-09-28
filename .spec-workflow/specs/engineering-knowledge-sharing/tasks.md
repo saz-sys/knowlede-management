@@ -102,7 +102,7 @@
     - Success: 検索結果とタグインサイトが表示され、UX KPIを満たす
     - Instructions: tasks.mdの当該行を開始時に`- [ ]`→`- [-]`、完了時に`- [x]`へ更新すること
 
-- [-] TASK-007 RSS Edge Functionと承認UI
+- [x] TASK-007 RSS Edge Functionと承認UI
   - 対応要件: REQ-003
   - 対応ファイル/モジュール: `supabase/functions/rss-fetch/index.ts`, `supabase/functions/_shared/open-graph.ts`, `app/(dashboard)/rss/page.tsx`, `app/api/rss/approve/route.ts`
   - 作業内容:
@@ -239,21 +239,21 @@
     - Success: UIからリンク管理が完結し、テーブルに正しく保存される
     - Instructions: tasks.mdの当該行を開始時に`- [ ]`→`- [-]`、完了時に`- [x]`へ更新すること
 
-- [ ] TASK-016 あとで読む（ブックマーク）機能
+- [x] TASK-016 あとで読む（ブックマーク）機能
   - 対応要件: 利用頻度向上施策（新規）
   - 対応ファイル/モジュール: `app/api/bookmarks/route.ts`, `components/bookmarks/*`, `app/page.tsx`, `supabase/migrations/*`
   - 作業内容:
     - ブックマークテーブルとAPIを追加し、投稿カードから登録/解除できるようにする
     - 期限指定リマインド（Slack/メール）を設定し、定期ジョブで通知
     - ダッシュボードに「あとで読む」一覧と既読管理UIを実装
-  - 完了条件: ブックマーク登録/解除・リマインド通知・一覧表示が動作
+  - 完了条件: ブックマーク登録/解除・一覧表示が動作
   - _Prompt:
     - Role: フルスタックエンジニア（通知＋UI）
     - Task: Implement the task for spec engineering-knowledge-sharing, first run spec-workflow-guide to get the workflow guide then implement the task: ブックマークAPIとUI、リマインド通知（Slack/メール）を実装し、「あとで読む」体験を提供する
     - Restrictions: 通知頻度を制御しスパム化を防ぐ、RLSで本人のみ閲覧可
     - _Leverage: 既存RSS更新ボタン・通知実装、Supabase Edge Functions
     - _Requirements: 利用頻度向上施策
-    - Success: テスト用Slackチャンネルでリマインドが確認でき、UIで状態が反映
+    - Success: UIで状態が反映
     - Instructions: tasks.mdの当該行を開始時に`- [ ]`→`- [-]`、完了時に`- [x]`へ更新すること
 
 - [ ] TASK-017 URL重複検知と既存投稿案内

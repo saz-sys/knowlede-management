@@ -78,10 +78,14 @@ async function fetchFeeds(supabase: SupabaseClient, targetFeedId: string | null)
     return data ? [data as FeedConfig] : [];
   }
 
+  // 1時間以内に更新されていないフィードを取得
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+
   const { data, error } = await supabase
     .from("rss_feeds")
     .select("id, name, url, tags, is_active, last_etag, last_modified")
     .eq("is_active", true)
+    .or(`last_fetched_at.is.null,last_fetched_at.lt.${oneHourAgo.toISOString()}`)
     .order("last_fetched_at", { ascending: true })
     .limit(MAX_FEEDS_PER_RUN);
 
