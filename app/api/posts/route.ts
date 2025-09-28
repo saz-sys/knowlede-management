@@ -24,6 +24,33 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Title and url are required" }, { status: 400 });
     }
 
+    // URL重複チェック
+    const { data: existingPost, error: checkError } = await supabase
+      .from("posts")
+      .select("id, title, author_email, created_at")
+      .eq("url", url.trim())
+      .single();
+
+    if (checkError && checkError.code !== "PGRST116") {
+      // PGRST116は「行が見つからない」エラー（重複なし）
+      console.error("Error checking for duplicate URL:", checkError);
+      return NextResponse.json({ error: "Failed to check for duplicate URL" }, { status: 500 });
+    }
+
+    if (existingPost) {
+      // 重複URLが見つかった場合
+      return NextResponse.json({
+        error: "DUPLICATE_URL",
+        message: "このURLは既に投稿されています",
+        existingPost: {
+          id: existingPost.id,
+          title: existingPost.title,
+          author_email: existingPost.author_email,
+          created_at: existingPost.created_at
+        }
+      }, { status: 409 });
+    }
+
     const { data: post, error: insertError } = await supabase
       .from("posts")
       .insert({

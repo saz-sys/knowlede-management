@@ -256,7 +256,7 @@
     - Success: UIで状態が反映
     - Instructions: tasks.mdの当該行を開始時に`- [ ]`→`- [-]`、完了時に`- [x]`へ更新すること
 
-- [ ] TASK-017 URL重複検知と既存投稿案内
+- [x] TASK-017 URL重複検知と既存投稿案内
   - 対応要件: 重複投稿防止（新規）
   - 対応ファイル/モジュール: `app/api/posts/route.ts`, `app/(dashboard)/posts/new/page.tsx`, `components/posts/PostEditor.tsx`, `supabase/migrations/*`
   - 作業内容:
@@ -267,7 +267,6 @@
   - _Prompt:
     - Role: フルスタックエンジニア（Next.js + Supabase）
     - Task: Implement the task for spec engineering-knowledge-sharing, first run spec-workflow-guide to get the workflow guide then implement the task: 投稿APIにURL重複検知と既存投稿案内モーダルを実装し、管理ロールの例外処理も整備する
-    - Restrictions: 既存データ移行を安全に行う、例外時の監査ログを記録
     - _Leverage: 既存投稿作成API, Supabaseバリデーション
     - _Requirements: 重複投稿防止
     - Success: 手動テストで重複投稿がブロックされ、案内モーダルが表示される
