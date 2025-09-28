@@ -145,3 +145,48 @@ export async function PATCH(request: NextRequest) {
 
   return NextResponse.json({ feed: data as RssFeed });
 }
+
+export async function DELETE(request: NextRequest) {
+  const cookieStore = cookies();
+  const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+  const {
+    data: { session },
+    error: authError
+  } = await supabase.auth.getSession();
+
+  if (authError || !session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const url = new URL(request.url);
+  const feedId = url.searchParams.get("id");
+
+  if (!feedId) {
+    return NextResponse.json({ error: "id is required" }, { status: 400 });
+  }
+
+  // RSSフィードに関連するpostsも削除
+  const { error: postsError } = await supabase
+    .from("posts")
+    .delete()
+    .eq("metadata->>source", "rss")
+    .eq("metadata->>feed_id", feedId);
+
+  if (postsError) {
+    console.error("Failed to delete related posts", postsError);
+    return NextResponse.json({ error: "Failed to delete related posts" }, { status: 500 });
+  }
+
+  // RSSフィードを削除
+  const { error: deleteError } = await supabase
+    .from("rss_feeds")
+    .delete()
+    .eq("id", feedId);
+
+  if (deleteError) {
+    console.error("Failed to delete feed", deleteError);
+    return NextResponse.json({ error: "Failed to delete feed" }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true });
+}

@@ -22,6 +22,7 @@ export default function RssFeedsPage() {
   const [keyword, setKeyword] = useState("");
   const [tagFilter, setTagFilter] = useState<string | null>(null);
   const [editingFeed, setEditingFeed] = useState<RssFeed | null>(null);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   const loadFeeds = useCallback(async () => {
     setIsLoading(true);
@@ -35,6 +36,26 @@ export default function RssFeedsPage() {
       setIsLoading(false);
     }
   }, []);
+
+  const handleDeleteFeed = async (feedId: string) => {
+    setIsDeleting(feedId);
+    try {
+      const response = await fetch(`/api/rss-feeds?id=${feedId}`, {
+        method: "DELETE"
+      });
+      
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.error ?? "RSSフィードの削除に失敗しました");
+      }
+      
+      await loadFeeds();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "RSSフィードの削除に失敗しました");
+    } finally {
+      setIsDeleting(null);
+    }
+  };
 
   useEffect(() => {
     loadFeeds();
@@ -72,6 +93,8 @@ export default function RssFeedsPage() {
           onKeywordChange={setKeyword}
           onTagFilterChange={setTagFilter}
           onEditFeed={setEditingFeed}
+          onDeleteFeed={handleDeleteFeed}
+          isDeleting={isDeleting}
         />
       )}
     </div>

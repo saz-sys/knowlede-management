@@ -11,9 +11,11 @@ interface FeedListProps {
   onKeywordChange: (value: string) => void;
   onTagFilterChange: (tag: string | null) => void;
   onEditFeed: (feed: RssFeed) => void;
+  onDeleteFeed: (feedId: string) => void;
+  isDeleting?: string | null;
 }
 
-export default function FeedList({ feeds, keyword, tagFilter, onKeywordChange, onTagFilterChange, onEditFeed }: FeedListProps) {
+export default function FeedList({ feeds, keyword, tagFilter, onKeywordChange, onTagFilterChange, onEditFeed, onDeleteFeed, isDeleting }: FeedListProps) {
   const normalizedKeyword = keyword.toLowerCase();
 
   const availableTags = useMemo(() => {
@@ -129,6 +131,17 @@ export default function FeedList({ feeds, keyword, tagFilter, onKeywordChange, o
                   className="rounded-md border border-gray-300 px-3 py-1 text-xs text-gray-600 hover:bg-gray-100"
                 >
                   編集
+                </button>
+                <button
+                  onClick={() => {
+                    if (confirm(`「${feed.name}」を削除しますか？関連する記事も削除されます。`)) {
+                      onDeleteFeed(feed.id);
+                    }
+                  }}
+                  disabled={isDeleting === feed.id}
+                  className="rounded-md border border-red-300 px-3 py-1 text-xs text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isDeleting === feed.id ? "削除中..." : "削除"}
                 </button>
               </div>
             </article>
