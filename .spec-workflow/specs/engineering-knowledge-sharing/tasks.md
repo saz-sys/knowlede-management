@@ -222,7 +222,7 @@
     - Success: 新ロゴ／タイトルが反映され、主要ページでの表示が確認できる
     - Instructions: tasks.mdの当該行を開始時に`- [ ]`→`- [-]`、完了時に`- [x]`へ更新すること
 
-- [ ] TASK-015 社員リソースリンクディレクトリ
+- [x] TASK-015 社員リソースリンクディレクトリ
   - 対応要件: 情報発信チャネルの可視化（新規）
   - 対応ファイル/モジュール: `app/(dashboard)/resources/page.tsx`, `app/api/resources/route.ts`, `components/resources/*`, `supabase/migrations/*`
   - 作業内容:

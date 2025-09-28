@@ -29,7 +29,7 @@ interface FeedDownload {
 
 const REQUEST_TIMEOUT_MS = 10000;
 const MAX_ITEMS_PER_FEED = 10;
-const MAX_FEEDS_PER_RUN = 1;
+const MAX_FEEDS_PER_RUN = 10;
 
 function createSupabaseClient() {
   const url = Deno.env.get("SUPABASE_URL");
@@ -228,6 +228,66 @@ async function processFeed(supabase: SupabaseClient, feed: FeedConfig): Promise<
 
     if (insertError) {
       throw new Error(`Failed to insert posts: ${insertError.message}`);
+    }
+
+    // RSSフィードのnameとtagsをpostsのtagsに追加
+    if (inserted && inserted.length > 0) {
+      const postIds = inserted.map(row => row.id);
+      const tagsToAdd = [];
+      
+      // RSSフィードのnameをタグとして追加
+      if (feed.name) {
+        tagsToAdd.push(feed.name);
+      }
+      
+      // RSSフィードのtagsを追加
+      if (feed.tags && Array.isArray(feed.tags)) {
+        tagsToAdd.push(...feed.tags);
+      }
+      
+      // 重複を除去
+      const uniqueTags = [...new Set(tagsToAdd)];
+      
+      if (uniqueTags.length > 0) {
+        // 各タグが存在するかチェックし、存在しない場合は作成
+        for (const tagName of uniqueTags) {
+          const { data: existingTag } = await supabase
+            .from("tags")
+            .select("id")
+            .eq("name", tagName)
+            .maybeSingle();
+          
+          if (!existingTag) {
+            const { data: newTag } = await supabase
+              .from("tags")
+              .insert({ name: tagName })
+              .select("id")
+              .single();
+            
+            if (newTag) {
+              // 新しく作成したタグをpostsに関連付け
+              await supabase
+                .from("post_tags")
+                .insert(
+                  postIds.map(postId => ({
+                    post_id: postId,
+                    tag_id: newTag.id
+                  }))
+                );
+            }
+          } else {
+            // 既存のタグをpostsに関連付け
+            await supabase
+              .from("post_tags")
+              .insert(
+                postIds.map(postId => ({
+                  post_id: postId,
+                  tag_id: existingTag.id
+                }))
+              );
+          }
+        }
+      }
     }
 
     result.inserted = inserted?.length ?? 0;

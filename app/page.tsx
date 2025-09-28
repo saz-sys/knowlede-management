@@ -85,8 +85,8 @@ export default function HomePage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ feed_id: "5e42c893-c1e6-474f-813b-cb17f348388e" })
+        }
+        // feed_idを指定しないことで、すべてのアクティブなフィードを更新
       });
       if (!response.ok) {
         const data = await response.json().catch(() => null);
