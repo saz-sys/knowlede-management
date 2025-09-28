@@ -2,6 +2,7 @@ import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import MyPostsList from "@/components/posts/MyPostsList";
+import MyProfile from "@/components/profile/MyProfile";
 
 export default async function MyPostsPage() {
   const supabase = createServerComponentClient({ cookies });
@@ -19,12 +20,26 @@ export default async function MyPostsPage() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">マイページ</h1>
         <p className="mt-2 text-sm text-gray-600">
-          あなたが投稿した記事の一覧です。編集や削除ができます。
+          あなたの投稿とプロフィールを管理できます。
         </p>
       </div>
 
-      <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
-        <MyPostsList />
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* SNS */}
+        <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
+          <div className="p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">SNS</h2>
+            <MyProfile />
+          </div>
+        </div>
+
+        {/* 投稿一覧 */}
+        <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
+          <div className="p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">マイ投稿</h2>
+            <MyPostsList />
+          </div>
+        </div>
       </div>
     </div>
   );

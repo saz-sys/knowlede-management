@@ -80,9 +80,9 @@ export default function ResourceDirectoryPage() {
     <div className="min-h-screen bg-slate-50">
       <main className="mx-auto max-w-3xl space-y-6 px-4 py-8">
         <header className="space-y-2">
-          <h1 className="text-2xl font-bold text-gray-900">Tech Reef リソース</h1>
+          <h1 className="text-2xl font-bold text-gray-900">プロフィール一覧</h1>
           <p className="text-sm text-gray-600">
-            社員の技術ブログや発信チャネルをカタログ化し、チームで共有します。
+            チームメンバーのプロフィールリンクを確認できます。
           </p>
         </header>
 

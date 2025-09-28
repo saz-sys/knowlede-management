@@ -117,7 +117,7 @@ export default function Header() {
               className="block px-3 py-2 text-sm font-medium text-slate-600 hover:text-brand-dark hover:bg-slate-50 rounded-md"
               onClick={() => setIsMenuOpen(false)}
             >
-              リソース
+              プロフィール
             </Link>
             <Link
               href="/bookmarks"
