@@ -1,0 +1,19 @@
+name: RSS Fetch
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # 1時間ごと
+  workflow_dispatch:  # 手動実行も可能
+
+jobs:
+  rss-fetch:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Trigger RSS Fetch
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -d '{}' \
+            "${{ secrets.SUPABASE_URL }}/functions/v1/rss-fetch"

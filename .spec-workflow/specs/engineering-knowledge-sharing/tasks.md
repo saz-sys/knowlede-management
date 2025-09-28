@@ -102,7 +102,7 @@
     - Success: 検索結果とタグインサイトが表示され、UX KPIを満たす
     - Instructions: tasks.mdの当該行を開始時に`- [ ]`→`- [-]`、完了時に`- [x]`へ更新すること
 
-- [-] TASK-007 RSS Edge Functionと承認UI
+- [x] TASK-007 RSS Edge Functionと承認UI
   - 対応要件: REQ-003
   - 対応ファイル/モジュール: `supabase/functions/rss-fetch/index.ts`, `supabase/functions/_shared/open-graph.ts`, `app/(dashboard)/rss/page.tsx`, `app/api/rss/approve/route.ts`
   - 作業内容:
