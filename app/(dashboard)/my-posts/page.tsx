@@ -17,7 +17,7 @@ export default async function MyPostsPage() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">マイ投稿</h1>
+        <h1 className="text-2xl font-bold text-gray-900">マイページ</h1>
         <p className="mt-2 text-sm text-gray-600">
           あなたが投稿した記事の一覧です。編集や削除ができます。
         </p>
