@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSessionContext } from "@supabase/auth-helpers-react";
 import type { Post } from "@/lib/types/posts";
 import BookmarkButton from "@/components/bookmarks/BookmarkButton";
+import PostSearch from "@/components/posts/PostSearch";
 
 type SourceFilter = "all" | "manual" | "rss";
 
@@ -58,6 +59,9 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
   const [source, setSource] = useState<SourceFilter>("all");
   const [tag, setTag] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<PostWithTags[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const hasLoadedOnceRef = useRef(false);
 
   useEffect(() => {
@@ -76,6 +80,45 @@ export default function HomePage() {
       setError(err instanceof Error ? err.message : "投稿の取得に失敗しました");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSearch = async (query: string) => {
+    setSearchQuery(query);
+    
+    if (!query.trim()) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    try {
+      setIsSearching(true);
+      const params = new URLSearchParams({
+        q: query,
+        limit: "50"
+      });
+
+      if (source !== "all") {
+        params.append("source", source);
+      }
+      if (tag) {
+        params.append("tag", tag);
+      }
+
+      const response = await fetch(`/api/posts/search?${params}`);
+      
+      if (!response.ok) {
+        throw new Error("検索に失敗しました");
+      }
+
+      const data = await response.json();
+      setSearchResults(data.posts || []);
+    } catch (err) {
+      console.error("Search failed:", err);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
     }
   };
 
@@ -111,6 +154,12 @@ export default function HomePage() {
   const availableTags = useMemo(() => deriveTags(posts), [posts]);
 
   const displayPosts = useMemo(() => {
+    // 検索中は検索結果を表示
+    if (searchQuery.trim()) {
+      return searchResults;
+    }
+    
+    // 通常のフィルタリング
     return posts.filter((post) => {
       const isRss = post.metadata?.source === "rss";
       const matchesSource =
@@ -120,7 +169,7 @@ export default function HomePage() {
         : true;
       return matchesSource && matchesTag;
     });
-  }, [posts, source, tag]);
+  }, [posts, source, tag, searchQuery, searchResults]);
 
   if (isSessionLoading || !session) {
     return (
@@ -155,8 +204,18 @@ export default function HomePage() {
         </div>
 
         <section className="rounded-lg border bg-white p-4 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900">フィルタ</h2>
-          <div className="mt-3 flex flex-wrap gap-3 text-sm">
+          <h2 className="text-lg font-semibold text-gray-900">検索・フィルタ</h2>
+          
+          {/* 検索フォーム */}
+          <div className="mt-4">
+            <PostSearch
+              onSearch={handleSearch}
+              placeholder="投稿を検索..."
+              className="mb-0"
+            />
+          </div>
+          
+          <div className="mt-4 flex flex-wrap gap-3 text-sm">
             {["all", "manual", "rss"].map((key) => (
               <button
                 key={key}
@@ -198,9 +257,9 @@ export default function HomePage() {
           )}
         </section>
 
-        {isLoading ? (
+        {isLoading || isSearching ? (
           <section className="rounded-lg border bg-white p-8 text-center text-sm text-gray-600 shadow-sm">
-            読み込み中です…
+            {isSearching ? "検索中です…" : "読み込み中です…"}
           </section>
         ) : error ? (
           <section className="rounded-lg border bg-white p-8 text-center text-sm text-red-600 shadow-sm">
@@ -208,7 +267,7 @@ export default function HomePage() {
           </section>
         ) : displayPosts.length === 0 ? (
           <section className="rounded-lg border border-dashed bg-white p-8 text-center text-gray-500 shadow-sm">
-            該当する投稿はありません。
+            {searchQuery.trim() ? "検索結果が見つかりませんでした。" : "該当する投稿はありません。"}
           </section>
         ) : (
           <div className="space-y-4">
