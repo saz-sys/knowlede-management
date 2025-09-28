@@ -35,6 +35,21 @@ function deriveTags(posts: PostWithTags[]) {
   return Array.from(tags).sort();
 }
 
+function createExcerpt(text: string, maxLength = 200) {
+  const normalized = text.replace(/\r\n/g, "\n").trim();
+  if (normalized.length <= maxLength) {
+    return normalized;
+  }
+
+  const slice = normalized.slice(0, maxLength);
+  const lastBreak = slice.lastIndexOf("\n");
+  const lastSpace = slice.lastIndexOf(" ");
+  const cutIndex = Math.max(lastBreak, lastSpace);
+  const truncated = cutIndex > maxLength * 0.5 ? slice.slice(0, cutIndex) : slice;
+
+  return `${truncated.trimEnd()}…`;
+}
+
 export default function HomePage() {
   const { session, isLoading: isSessionLoading } = useSessionContext();
   const [posts, setPosts] = useState<PostWithTags[]>([]);
@@ -210,9 +225,9 @@ export default function HomePage() {
                 </h3>
 
                 {post.summary ? (
-                  <p className="mt-2 text-sm text-gray-700 line-clamp-3">{post.summary}</p>
+                  <p className="mt-2 text-sm text-gray-700 whitespace-pre-line">{createExcerpt(post.summary)}</p>
                 ) : post.content ? (
-                  <p className="mt-2 text-sm text-gray-700 line-clamp-3">{post.content}</p>
+                  <p className="mt-2 text-sm text-gray-700 whitespace-pre-line">{createExcerpt(post.content)}</p>
                 ) : null}
 
                 <div className="mt-3 flex flex-wrap gap-1 text-xs text-gray-500">

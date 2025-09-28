@@ -10,6 +10,21 @@ interface PostDetailPageProps {
   };
 }
 
+function createExcerpt(text: string, maxLength = 200) {
+  const normalized = text.replace(/\r\n/g, "\n").trim();
+  if (normalized.length <= maxLength) {
+    return normalized;
+  }
+
+  const slice = normalized.slice(0, maxLength);
+  const lastBreak = slice.lastIndexOf("\n");
+  const lastSpace = slice.lastIndexOf(" ");
+  const cutIndex = Math.max(lastBreak, lastSpace);
+  const truncated = cutIndex > maxLength * 0.5 ? slice.slice(0, cutIndex) : slice;
+
+  return `${truncated.trimEnd()}…`;
+}
+
 export default async function PostDetailPage({ params }: PostDetailPageProps) {
   const supabase = createServerComponentClient({ cookies });
 
@@ -29,6 +44,7 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
       url,
       content,
       summary,
+      metadata,
       created_at,
       updated_at,
       author_email
@@ -84,6 +100,18 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
     return new Date(dateString).toLocaleString("ja-JP");
   };
 
+  const isRssPost = post.metadata?.source === "rss";
+  const summaryText = !post.summary
+    ? null
+    : isRssPost
+    ? createExcerpt(post.summary)
+    : post.summary;
+  const contentText = !post.content
+    ? null
+    : isRssPost
+    ? createExcerpt(post.content)
+    : post.content;
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <article className="bg-white rounded-lg shadow-sm border p-6 mb-6">
@@ -111,17 +139,19 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
           </div>
         )}
 
-        {post.summary && (
+        {summaryText && (
           <div className="mb-4 p-4 bg-gray-50 rounded-lg">
             <h3 className="font-semibold text-gray-900 mb-2">要約</h3>
-            <p className="text-gray-700">{post.summary}</p>
+            <p className="text-gray-700 whitespace-pre-line">{summaryText}</p>
           </div>
         )}
 
-        <div className="prose max-w-none">
-          <h3 className="font-semibold text-gray-900 mb-2">コメント</h3>
-          <div className="whitespace-pre-wrap text-gray-700">{post.content}</div>
-        </div>
+        {contentText && (
+          <div className="prose max-w-none">
+            <h3 className="font-semibold text-gray-900 mb-2">{isRssPost ? "本文ダイジェスト" : "本文"}</h3>
+            <div className="whitespace-pre-line text-gray-700">{contentText}</div>
+          </div>
+        )}
       </article>
 
       <section className="bg-white rounded-lg shadow-sm border p-6 mb-6">
