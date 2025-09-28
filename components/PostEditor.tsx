@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import DuplicatePostModal from "./posts/DuplicatePostModal";
 
 interface PostEditorProps {
   onSuccess?: (postId: string) => void;
@@ -20,6 +21,8 @@ export default function PostEditor({ onSuccess }: PostEditorProps) {
   const [form, setForm] = useState(initialState);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false);
+  const [existingPost, setExistingPost] = useState<any>(null);
   const router = useRouter();
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -61,6 +64,14 @@ export default function PostEditor({ onSuccess }: PostEditorProps) {
 
       if (!response.ok) {
         const data = await response.json();
+        
+        // 重複URLエラーの場合
+        if (data.error === "DUPLICATE_URL") {
+          setExistingPost(data.existingPost);
+          setShowDuplicateModal(true);
+          return;
+        }
+        
         throw new Error(data.error || "投稿に失敗しました");
       }
 
@@ -81,8 +92,19 @@ export default function PostEditor({ onSuccess }: PostEditorProps) {
     }
   };
 
+  const handleCloseDuplicateModal = () => {
+    setShowDuplicateModal(false);
+    setExistingPost(null);
+  };
+
+  const handleViewExisting = () => {
+    setShowDuplicateModal(false);
+    setExistingPost(null);
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <>
+      <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
         <label htmlFor="title" className="block text-sm font-medium text-gray-700">
           タイトル <span className="text-red-500">*</span>
@@ -196,6 +218,14 @@ export default function PostEditor({ onSuccess }: PostEditorProps) {
         </button>
       </div>
     </form>
+
+    <DuplicatePostModal
+      isOpen={showDuplicateModal}
+      onClose={handleCloseDuplicateModal}
+      existingPost={existingPost}
+      onViewExisting={handleViewExisting}
+    />
+    </>
   );
 }
 
