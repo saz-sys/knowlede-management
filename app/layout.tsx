@@ -7,18 +7,20 @@ import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 
 export const metadata: Metadata = {
-  title: "Engineering Knowledge Sharing",
-  description: "PdEナレッジ共有プラットフォーム",
+  title: "Tech Reef",
+  description: "エンジニアの知識共有プラットフォーム",
   icons: {
-    icon: [
-      { url: "/favicon.ico" },
-      { url: "/branding/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-      { url: "/branding/favicon-32x32.png", sizes: "32x32", type: "image/png" }
-    ],
-    shortcut: "/favicon.ico",
-    apple: "/branding/apple-touch-icon.png"
+    icon: { url: "/favicon.ico", type: "image/x-icon" },
+    shortcut: { url: "/favicon.ico", type: "image/x-icon" },
+    apple: { url: "/branding/apple-touch-icon.png", sizes: "180x180" }
   },
-  manifest: "/site.webmanifest"
+  manifest: "/site.webmanifest",
+  openGraph: {
+    title: "Tech Reef",
+    description: "エンジニアの知識共有プラットフォーム",
+    images: ["/branding/og-image.png"],
+    type: "website"
+  }
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
@@ -29,6 +31,11 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
 
   return (
     <html lang="ja">
+      <head>
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/branding/apple-touch-icon.png" />
+      </head>
       <body className="bg-slate-50 text-slate-900">
         <SupabaseProvider session={session}>
           <Header />

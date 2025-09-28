@@ -204,7 +204,7 @@
     - Success: 改善箇所のユーザビリティが向上し、テストで問題が確認されない
     - Instructions: tasks.mdの当該行を開始時に`- [ ]`→`- [-]`、完了時に`- [x]`へ更新すること
 
-- [ ] TASK-014 タイトル／ロゴ刷新
+- [x] TASK-014 タイトル／ロゴ刷新
   - 対応要件: ブランディング・利用促進
   - 対応ファイル/モジュール: `components/Header.tsx`, `public/branding/*`, `public/favicon.ico`, `public/site.webmanifest`, `app/layout.tsx`
   - 作業内容:
