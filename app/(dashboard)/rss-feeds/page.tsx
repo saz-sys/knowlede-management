@@ -69,7 +69,13 @@ export default function RssFeedsPage() {
       </header>
 
       <FeedForm
-        initialValues={editingFeed}
+        initialValues={editingFeed ? {
+          id: editingFeed.id,
+          name: editingFeed.name,
+          url: editingFeed.url,
+          tags: editingFeed.tags || [],
+          is_active: editingFeed.is_active
+        } : null}
         onSubmitted={() => {
           setEditingFeed(null);
           loadFeeds();
