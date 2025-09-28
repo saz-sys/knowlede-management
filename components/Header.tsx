@@ -55,6 +55,9 @@ export default function Header() {
               <Link href="/bookmarks" className="hover:text-brand-dark">
                 あとで読む
               </Link>
+              <Link href="/my-posts" className="hover:text-brand-dark">
+                マイ投稿
+              </Link>
             </nav>
           )}
         </div>
@@ -141,6 +144,13 @@ export default function Header() {
               onClick={() => setIsMenuOpen(false)}
             >
               あとで読む
+            </Link>
+            <Link
+              href="/my-posts"
+              className="block px-3 py-2 text-sm font-medium text-slate-600 hover:text-brand-dark hover:bg-slate-50 rounded-md"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              マイ投稿
             </Link>
             <div className="border-t border-slate-200 pt-2 mt-2">
               <div className="px-3 py-2 text-sm text-slate-500">
