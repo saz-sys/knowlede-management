@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useSessionContext } from "@supabase/auth-helpers-react";
 import LogoutButton from "@/components/LogoutButton";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
@@ -32,11 +33,12 @@ export default function Header() {
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <div className="flex items-center gap-4">
           <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
-            <img 
+            <Image 
               src="/branding/logo.png" 
               alt="Tech Reef" 
-              className="h-16"
-              style={{ height: '64px', width: '200px', objectFit: 'contain' }}
+              width={200}
+              height={64}
+              style={{ objectFit: 'contain' }}
             />
           </Link>
           {session && (
