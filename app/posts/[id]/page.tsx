@@ -79,8 +79,8 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
   const rootComments: Comment[] = [];
 
   comments?.forEach(comment => {
-    comment.replies = [];
-    comment.reply_count = 0;
+    (comment as any).replies = [];
+    (comment as any).reply_count = 0;
     commentMap.set(comment.id, comment);
   });
 
@@ -88,8 +88,8 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
     if (comment.parent_id) {
       const parent = commentMap.get(comment.parent_id);
       if (parent) {
-        parent.replies.push(comment);
-        parent.reply_count = (parent.reply_count || 0) + 1;
+        (parent as any).replies.push(comment);
+        (parent as any).reply_count = ((parent as any).reply_count || 0) + 1;
       }
     } else {
       rootComments.push(comment);
