@@ -41,25 +41,6 @@ export default function Header() {
               style={{ objectFit: 'contain' }}
             />
           </Link>
-          {session && (
-            <nav className="hidden items-center gap-3 text-sm font-medium text-slate-600 sm:flex">
-              <Link href="/posts/new" className="hover:text-brand-dark">
-                新規投稿
-              </Link>
-              <Link href="/rss-feeds" className="hover:text-brand-dark">
-                RSSフィード
-              </Link>
-              <Link href="/resources" className="hover:text-brand-dark">
-                リソース
-              </Link>
-              <Link href="/bookmarks" className="hover:text-brand-dark">
-                あとで読む
-              </Link>
-              <Link href="/my-posts" className="hover:text-brand-dark">
-                マイ投稿
-              </Link>
-            </nav>
-          )}
         </div>
 
         <div className="flex items-center gap-3 text-sm text-slate-600">
@@ -83,7 +64,7 @@ export default function Header() {
           {session && (
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="sm:hidden p-2 rounded-md hover:bg-slate-100"
+              className="p-2 rounded-md hover:bg-slate-100"
               aria-label="メニューを開く"
             >
               <svg
@@ -113,9 +94,9 @@ export default function Header() {
         </div>
       </div>
 
-      {/* モバイルメニュー */}
+      {/* ハンバーガーメニュー */}
       {session && isMenuOpen && (
-        <div className="sm:hidden border-t border-slate-200 bg-white">
+        <div className="border-t border-slate-200 bg-white">
           <nav className="px-4 py-3 space-y-2">
             <Link
               href="/posts/new"
