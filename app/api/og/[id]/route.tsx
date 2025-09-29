@@ -113,9 +113,8 @@ export async function GET(
             <div
               style={{
                 fontSize: 18,
-                color: '#6b7280',
-                backgroundColor: isRssPost ? '#fbbf24' : '#10b981',
                 color: 'white',
+                backgroundColor: isRssPost ? '#fbbf24' : '#10b981',
                 padding: '8px 16px',
                 borderRadius: '20px',
                 fontWeight: 'bold',
