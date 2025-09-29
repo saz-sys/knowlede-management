@@ -333,9 +333,6 @@ export default function HomePage() {
                         記事を開く →
                       </a>
                     )}
-                    <span className="text-blue-600">
-                      詳細を見る
-                    </span>
                   </div>
                   <div className="flex items-center gap-3">
                     {/* コメント数とブックマーク数を表示 */}
