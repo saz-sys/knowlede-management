@@ -120,17 +120,40 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Failed to fetch comments" }, { status: 500 });
     }
 
+    // プロフィール情報を取得
+    const authorIds = [...new Set(comments?.map(c => c.author_id) || [])];
+    const { data: profiles, error: profilesError } = await supabase
+      .from("profiles")
+      .select("id, name, email")
+      .in("id", authorIds);
+
+    if (profilesError) {
+      console.error("Profiles fetch error:", profilesError);
+    }
+
+    // プロフィール情報をマップに変換
+    const profileMap = new Map();
+    profiles?.forEach(profile => {
+      profileMap.set(profile.id, profile);
+    });
+
+    // コメントにプロフィール情報を追加
+    const commentsWithProfiles = comments?.map(comment => ({
+      ...comment,
+      author: profileMap.get(comment.author_id) || null
+    })) || [];
+
     // 階層構造に変換
     const commentMap = new Map();
     const rootComments: any[] = [];
 
-    comments?.forEach(comment => {
+    commentsWithProfiles.forEach(comment => {
       (comment as any).replies = [];
       (comment as any).reply_count = 0;
       commentMap.set(comment.id, comment);
     });
 
-    comments?.forEach(comment => {
+    commentsWithProfiles.forEach(comment => {
       if (comment.parent_id) {
         const parent = commentMap.get(comment.parent_id);
         if (parent) {

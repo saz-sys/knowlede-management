@@ -78,7 +78,7 @@ export default function CommentItem({
     return new Date(dateString).toLocaleString("ja-JP");
   };
 
-  const displayAuthor = comment.author?.name || comment.author?.email || comment.author_id;
+  const displayAuthor = comment.author?.name || comment.author?.email || `ユーザー${comment.author_id.slice(0, 8)}`;
 
   return (
     <div className="border-l-2 border-gray-200 pl-4">
