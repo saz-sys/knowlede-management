@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: PostDetailPageProps): Promise
   
   const { data: post } = await supabase
     .from("posts")
-    .select("title, summary, author_email, created_at")
+    .select("title, summary, author_email, created_at, url, metadata")
     .eq("id", params.id)
     .single();
 
@@ -47,6 +47,9 @@ export async function generateMetadata({ params }: PostDetailPageProps): Promise
     ? description.substring(0, 160) + "..." 
     : description;
 
+  const isRssPost = post.metadata?.source === "rss";
+  const postUrl = post.url || `https://tech-reef.vercel.app/posts/${params.id}`;
+  
   return {
     title: `${post.title} | Tech Reef`,
     description: truncatedDescription,
@@ -54,15 +57,34 @@ export async function generateMetadata({ params }: PostDetailPageProps): Promise
       title: post.title,
       description: truncatedDescription,
       type: "article",
+      url: `https://tech-reef.vercel.app/posts/${params.id}`,
       publishedTime: post.created_at,
       authors: [post.author_email || "Tech Reef"],
       siteName: "Tech Reef",
       locale: "ja_JP",
+      images: [
+        {
+          url: `https://tech-reef.vercel.app/api/og/${params.id}`,
+          width: 1200,
+          height: 630,
+          alt: post.title,
+        }
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title: post.title,
       description: truncatedDescription,
+      images: [`https://tech-reef.vercel.app/api/og/${params.id}`],
+    },
+    alternates: {
+      canonical: `https://tech-reef.vercel.app/posts/${params.id}`,
+    },
+    other: {
+      "article:author": post.author_email || "Tech Reef",
+      "article:published_time": post.created_at,
+      "article:section": isRssPost ? "RSS" : "ユーザー投稿",
+      ...(post.url && { "article:original_url": post.url }),
     },
   };
 }
