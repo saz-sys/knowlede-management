@@ -103,7 +103,7 @@ export default function MyProfile({ className = "" }: MyProfileProps) {
                 {links.map((link, index) => (
                   <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-gray-700">{link.label}</span>
+                      <span className="text-sm font-medium text-gray-700">{link.service}</span>
                       <a
                         href={link.url}
                         target="_blank"
@@ -145,7 +145,7 @@ interface ProfileEditFormProps {
 function ProfileEditForm({ initialLinks, onSave, onCancel }: ProfileEditFormProps) {
   const [links, setLinks] = useState<{ service: string; url: string }[]>(
     initialLinks.length > 0 
-      ? initialLinks.map(link => ({ service: link.label, url: link.url }))
+      ? initialLinks.map(link => ({ service: link.service, url: link.url }))
       : [{ service: "", url: "" }]
   );
 
