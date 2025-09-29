@@ -3,23 +3,23 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
-interface CommentRanking {
+interface BookmarkRanking {
   post_id: string;
   title: string;
   url: string;
   author_email: string;
   author_name: string;
   created_at: string;
-  comment_count: number;
+  bookmark_count: number;
 }
 
-interface CommentRankingTableProps {
+interface BookmarkRankingTableProps {
   period: string;
   onPeriodChange: (period: string) => void;
 }
 
-export default function CommentRankingTable({ period, onPeriodChange }: CommentRankingTableProps) {
-  const [rankings, setRankings] = useState<CommentRanking[]>([]);
+export default function BookmarkRankingTable({ period, onPeriodChange }: BookmarkRankingTableProps) {
+  const [rankings, setRankings] = useState<BookmarkRanking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState({
@@ -35,11 +35,11 @@ export default function CommentRankingTable({ period, onPeriodChange }: CommentR
 
     try {
       const response = await fetch(
-        `/api/rankings/comments?period=${periodFilter}&page=${page}&limit=20`
+        `/api/rankings/bookmarks?period=${periodFilter}&page=${page}&limit=20`
       );
       
       if (!response.ok) {
-        throw new Error("Failed to fetch comment rankings");
+        throw new Error("Failed to fetch bookmark rankings");
       }
 
       const data = await response.json();
@@ -134,7 +134,7 @@ export default function CommentRankingTable({ period, onPeriodChange }: CommentR
                   投稿日
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  コメント数
+                  ブックマーク数
                 </th>
               </tr>
             </thead>
@@ -173,8 +173,8 @@ export default function CommentRankingTable({ period, onPeriodChange }: CommentR
                     {formatDate(ranking.created_at)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      {ranking.comment_count}
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      {ranking.bookmark_count}
                     </span>
                   </td>
                 </tr>
@@ -192,8 +192,8 @@ export default function CommentRankingTable({ period, onPeriodChange }: CommentR
                   <span className="text-sm font-medium text-gray-900">
                     {pagination.page === 1 ? index + 1 : (pagination.page - 1) * pagination.limit + index + 1}位
                   </span>
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    {ranking.comment_count}コメント
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    {ranking.bookmark_count}ブックマーク
                   </span>
                 </div>
               </div>
@@ -261,7 +261,7 @@ export default function CommentRankingTable({ period, onPeriodChange }: CommentR
             {Math.min(pagination.page * pagination.limit, pagination.total)}件を表示
           </>
         ) : (
-          "コメントがある記事が見つかりませんでした"
+          "ブックマークがある記事が見つかりませんでした"
         )}
       </div>
     </div>

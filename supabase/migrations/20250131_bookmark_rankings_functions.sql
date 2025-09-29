@@ -1,5 +1,5 @@
--- コメント数ランキングを取得する関数
-CREATE OR REPLACE FUNCTION get_comment_rankings(
+-- ブックマーク数ランキングを取得する関数
+CREATE OR REPLACE FUNCTION get_bookmark_rankings(
   period_filter TEXT DEFAULT '',
   limit_count INTEGER DEFAULT 20,
   offset_count INTEGER DEFAULT 0
@@ -11,7 +11,7 @@ RETURNS TABLE (
   author_email TEXT,
   author_name TEXT,
   created_at TIMESTAMPTZ,
-  comment_count BIGINT
+  bookmark_count BIGINT
 ) AS $$
 BEGIN
   RETURN QUERY
@@ -22,9 +22,9 @@ BEGIN
     p.author_email,
     COALESCE(prof.name, split_part(p.author_email, '@', 1)) as author_name,
     p.created_at,
-    COUNT(c.id) as comment_count
+    COUNT(b.id) as bookmark_count
   FROM posts p
-  LEFT JOIN comments c ON p.id = c.post_id
+  LEFT JOIN bookmarks b ON p.id = b.post_id
   LEFT JOIN profiles prof ON p.author_id = prof.id
   WHERE 1=1
     AND (period_filter = '' OR period_filter IS NULL OR 
@@ -36,15 +36,15 @@ BEGIN
             ELSE p.created_at
           END))
   GROUP BY p.id, p.title, p.url, p.author_email, prof.name, p.created_at
-  HAVING COUNT(c.id) > 0
-  ORDER BY comment_count DESC, p.created_at DESC
+  HAVING COUNT(b.id) > 0
+  ORDER BY bookmark_count DESC, p.created_at DESC
   LIMIT limit_count
   OFFSET offset_count;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- コメント数ランキングの総件数を取得する関数
-CREATE OR REPLACE FUNCTION get_comment_rankings_count(
+-- ブックマーク数ランキングの総件数を取得する関数
+CREATE OR REPLACE FUNCTION get_bookmark_rankings_count(
   period_filter TEXT DEFAULT ''
 )
 RETURNS TABLE (total BIGINT) AS $$
@@ -54,7 +54,7 @@ BEGIN
   FROM (
     SELECT p.id
     FROM posts p
-    LEFT JOIN comments c ON p.id = c.post_id
+    LEFT JOIN bookmarks b ON p.id = b.post_id
     WHERE 1=1
       AND (period_filter = '' OR period_filter IS NULL OR 
            (period_filter != '' AND p.created_at >= 
@@ -65,7 +65,7 @@ BEGIN
               ELSE p.created_at
             END))
     GROUP BY p.id
-    HAVING COUNT(c.id) > 0
+    HAVING COUNT(b.id) > 0
   ) ranked_posts;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
