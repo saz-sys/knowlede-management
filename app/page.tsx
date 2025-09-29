@@ -289,36 +289,36 @@ export default function HomePage() {
         ) : (
           <div className="space-y-4">
             {displayPosts.map((post) => (
-              <article key={post.id} className="ocean-card p-5">
-                <div className="flex items-center justify-between text-xs text-gray-500">
-                  <span>投稿者: {post.author_email ?? "不明"}</span>
-                  <span>{new Date(post.created_at).toLocaleString("ja-JP")}</span>
-                </div>
+              <article key={post.id} className="ocean-card p-5 cursor-pointer hover:shadow-lg transition-shadow">
+                <Link href={`/posts/${post.id}`} className="block">
+                  <div className="flex items-center justify-between text-xs text-gray-500">
+                    <span>投稿者: {post.author_email ?? "不明"}</span>
+                    <span>{new Date(post.created_at).toLocaleString("ja-JP")}</span>
+                  </div>
 
-                <h3 className="mt-2 text-xl font-semibold text-gray-900">
-                  <Link href={`/posts/${post.id}`} className="hover:underline">
+                  <h3 className="mt-2 text-xl font-semibold text-gray-900 hover:text-blue-600 transition-colors">
                     {post.title}
-                  </Link>
-                </h3>
+                  </h3>
 
-                {post.summary ? (
-                  <p className="mt-2 text-sm text-gray-700 whitespace-pre-line">{createExcerpt(post.summary)}</p>
-                ) : post.content ? (
-                  <p className="mt-2 text-sm text-gray-700 whitespace-pre-line">{createExcerpt(post.content)}</p>
-                ) : null}
+                  {post.summary ? (
+                    <p className="mt-2 text-sm text-gray-700 whitespace-pre-line">{createExcerpt(post.summary)}</p>
+                  ) : post.content ? (
+                    <p className="mt-2 text-sm text-gray-700 whitespace-pre-line">{createExcerpt(post.content)}</p>
+                  ) : null}
 
-                <div className="mt-3 flex flex-wrap gap-1 text-xs text-gray-500">
-                  {post.metadata?.source === "rss" ? (
-                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-amber-700">RSS</span>
-                  ) : (
-                    <span className="rounded-full bg-green-100 px-2 py-0.5 text-green-700">ユーザー</span>
-                  )}
-                  {post.post_tags?.map((item) => (
-                    <span key={item.tag.id} className="rounded-full bg-blue-100 px-2 py-0.5 text-blue-800">
-                      {item.tag.name}
-                    </span>
-                  ))}
-                </div>
+                  <div className="mt-3 flex flex-wrap gap-1 text-xs text-gray-500">
+                    {post.metadata?.source === "rss" ? (
+                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-amber-700">RSS</span>
+                    ) : (
+                      <span className="rounded-full bg-green-100 px-2 py-0.5 text-green-700">ユーザー</span>
+                    )}
+                    {post.post_tags?.map((item) => (
+                      <span key={item.tag.id} className="rounded-full bg-blue-100 px-2 py-0.5 text-blue-800">
+                        {item.tag.name}
+                      </span>
+                    ))}
+                  </div>
+                </Link>
 
                 <div className="mt-4 flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
@@ -328,13 +328,14 @@ export default function HomePage() {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-blue-600 hover:text-blue-800"
+                        onClick={(e) => e.stopPropagation()}
                       >
                         記事を開く →
                       </a>
                     )}
-                    <Link href={`/posts/${post.id}`} className="text-blue-600 hover:text-blue-800">
+                    <span className="text-blue-600">
                       詳細を見る
-                    </Link>
+                    </span>
                   </div>
                   <div className="flex items-center gap-3">
                     {/* コメント数とブックマーク数を表示 */}
@@ -352,20 +353,22 @@ export default function HomePage() {
                         {post.bookmarks?.[0]?.count || 0}
                       </span>
                     </div>
-                    <BookmarkButton 
-                      postId={post.id} 
-                      isBookmarked={bookmarkedPostIds.has(post.id)}
-                      skipInitialCheck={true}
-                      onToggle={(isBookmarked) => {
-                        const newBookmarkedIds = new Set(bookmarkedPostIds);
-                        if (isBookmarked) {
-                          newBookmarkedIds.add(post.id);
-                        } else {
-                          newBookmarkedIds.delete(post.id);
-                        }
-                        setBookmarkedPostIds(newBookmarkedIds);
-                      }}
-                    />
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <BookmarkButton 
+                        postId={post.id} 
+                        isBookmarked={bookmarkedPostIds.has(post.id)}
+                        skipInitialCheck={true}
+                        onToggle={(isBookmarked) => {
+                          const newBookmarkedIds = new Set(bookmarkedPostIds);
+                          if (isBookmarked) {
+                            newBookmarkedIds.add(post.id);
+                          } else {
+                            newBookmarkedIds.delete(post.id);
+                          }
+                          setBookmarkedPostIds(newBookmarkedIds);
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
               </article>
