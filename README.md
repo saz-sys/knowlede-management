@@ -1,6 +1,82 @@
-# knowledge-management
+# Engineering Knowledge Sharing Platform
 
+エンジニアリング知識共有プラットフォーム - 安全で信頼性の高い開発環境を提供します。
 
+## セキュリティ機能
+
+このプロジェクトは[Aikido Safe Chain](https://github.com/AikidoSec/safe-chain)を統合しており、マルウェアから開発環境を保護します。
+
+### Aikido Safe Chainについて
+
+- **マルウェア検出**: npm、yarn、pnpmパッケージのマルウェアを自動検出
+- **サプライチェーン保護**: 依存関係の悪意のあるパッケージをブロック
+- **CI/CD統合**: Dockerビルド時にも自動的にチェック実行
+- **package-lock.json使用**: 依存関係の自動更新を防止し、確定的なビルドを保証
+
+### セキュリティガイドライン
+
+⚠️ **重要**: このプロジェクトでは`npm ci`を使用して依存関係をインストールします。
+
+- ✅ **推奨**: `npm ci` - package-lock.jsonを厳密に参照
+- ❌ **非推奨**: `npm install` - 依存関係が自動更新される危険性（プロジェクト依存関係の場合）
+- ✅ **例外**: `npm install -g` - グローバルパッケージのインストール時のみ使用
+- 🔒 **セキュリティ**: 新しいパッケージを追加する際は、必ず`package-lock.json`を更新
+
+## 開発環境セットアップ
+
+### 前提条件
+
+- Node.js 18以上
+- Docker（オプション）
+
+### ローカル開発環境のセットアップ
+
+1. **リポジトリのクローン**
+```bash
+git clone <repository-url>
+cd github-knowlede-management
+```
+
+3. **依存関係のインストール**
+```bash
+# 安全なインストール（マルウェアチェック付き、package-lock.json使用）
+npm run install-safe
+
+# または通常のインストール（package-lock.json使用）
+npm ci
+```
+
+4. **開発サーバーの起動**
+```bash
+npm run dev
+```
+
+### Docker環境でのセットアップ
+
+```bash
+# Dockerイメージのビルド（自動的にマルウェアチェック実行）
+docker build -t knowledge-management .
+
+# コンテナの実行
+docker run -p 3000:3000 knowledge-management
+
+# または docker-compose を使用
+docker-compose up web
+```
+
+### デバッグ方法
+
+```bash
+# デバッグ用コンテナを起動
+docker-compose up debug
+
+# 別のターミナルでコンテナにログイン
+docker exec -it eks-debug bash
+
+# Safe Chainの動作確認
+safe-chain --version
+npm ci --verbose
+```
 
 ## Getting started
 

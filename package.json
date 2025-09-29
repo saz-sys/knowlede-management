@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "install-safe": "npm ci --safe-chain-malware-action=block",
+    "setup-safe-chain": "npm install -g @aikidosec/safe-chain && safe-chain setup"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.1",
