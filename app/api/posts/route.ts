@@ -155,7 +155,46 @@ export async function GET(request: NextRequest) {
 
     // フィルタ条件を適用
     if (tag) {
-      query = query.contains("post_tags", [{ tag: { name: tag } }]);
+      // タグフィルタの場合は、post_tagsテーブルを経由してフィルタリング
+      // まずタグIDを取得
+      const { data: tagData, error: tagError } = await supabase
+        .from("tags")
+        .select("id")
+        .eq("name", tag)
+        .single();
+      
+      if (tagError) {
+        console.error("Failed to find tag:", tagError);
+        return NextResponse.json({ error: "Tag not found" }, { status: 404 });
+      }
+      
+      // タグに関連する投稿IDを取得
+      const { data: postTags, error: postTagsError } = await supabase
+        .from("post_tags")
+        .select("post_id")
+        .eq("tag_id", tagData.id);
+      
+      if (postTagsError) {
+        console.error("Failed to fetch post tags:", postTagsError);
+        return NextResponse.json({ error: "Failed to fetch posts with tag" }, { status: 500 });
+      }
+      
+      const postIds = postTags?.map(pt => pt.post_id) || [];
+      if (postIds.length === 0) {
+        return NextResponse.json({ 
+          posts: [], 
+          pagination: {
+            page,
+            limit,
+            total: 0,
+            totalPages: 0,
+            hasMore: false
+          }
+        });
+      }
+      
+      // 投稿IDでフィルタリング
+      query = query.in("id", postIds);
     }
 
     if (source === "manual") {
