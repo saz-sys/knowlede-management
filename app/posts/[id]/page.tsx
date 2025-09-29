@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { Metadata } from "next";
 import CommentThread from "@/components/comments/CommentThread";
 import LikeButton from "@/components/posts/LikeButton";
+import ShareButton from "@/components/ShareButton";
 import { Comment } from "@/lib/types/comments";
 
 interface PostDetailPageProps {
@@ -70,14 +71,13 @@ export async function generateMetadata({ params }: PostDetailPageProps): Promise
 
 export default async function PostDetailPage({ params }: PostDetailPageProps) {
   const supabase = createServerComponentClient({ cookies });
-
-  const {
-    data: { session },
-    error: authError
-  } = await supabase.auth.getSession();
-  if (authError || !session) {
-    redirect("/login?redirect=/posts/" + params.id);
+  
+  // 認証チェック - 未認証の場合は公開ページにリダイレクト
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    redirect(`/posts/${params.id}/public`);
   }
+
 
   const { data: post, error: postError } = await supabase
     .from("posts")
@@ -206,11 +206,12 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
           </div>
         )}
 
-        <div className="mb-4 flex items-center gap-4">
-          <LikeButton 
+        <div className="mb-4 flex items-center justify-end gap-4">
+          <LikeButton
             postId={post.id}
             initialLikeCount={post.post_likes?.[0]?.count || 0}
           />
+          <ShareButton postId={post.id} postTitle={post.title} />
         </div>
 
         {summaryText && (
