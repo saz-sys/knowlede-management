@@ -139,7 +139,9 @@ export async function GET(request: NextRequest) {
           metadata,
           created_at,
           updated_at,
-          post_tags(tag:tags(id, name))
+          post_tags(tag:tags(id, name)),
+          comments(count),
+          bookmarks(count)
         `
       )
       .order("created_at", { ascending: false });
