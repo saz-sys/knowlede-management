@@ -131,7 +131,7 @@ export default function HomePage() {
     try {
       const { posts: newPosts, pagination: newPagination } = await fetchPosts({
         source,
-        tag,
+        tag: tag || undefined,
         page: reset ? 1 : pagination.page + 1,
         limit: 10
       });
