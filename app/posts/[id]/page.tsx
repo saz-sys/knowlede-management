@@ -61,7 +61,7 @@ export async function generateMetadata({ params }: PostDetailPageProps): Promise
       locale: "ja_JP",
       images: [
         {
-          url: `https://tech-reef.vercel.app/api/og/${params.id}`,
+          url: "/branding/og-image.png",
           width: 1200,
           height: 630,
           alt: post.title,
@@ -72,7 +72,7 @@ export async function generateMetadata({ params }: PostDetailPageProps): Promise
       card: "summary_large_image",
       title: post.title,
       description: truncatedDescription,
-      images: [`https://tech-reef.vercel.app/api/og/${params.id}`],
+      images: ["/branding/og-image.png"],
     },
   };
 }
