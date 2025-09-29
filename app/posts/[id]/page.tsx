@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { Metadata } from "next";
 import CommentThread from "@/components/comments/CommentThread";
 import LikeButton from "@/components/posts/LikeButton";
+import BookmarkButton from "@/components/bookmarks/BookmarkButton";
 import ShareButton from "@/components/ShareButton";
 import { Comment } from "@/lib/types/comments";
 
@@ -91,13 +92,26 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
       created_at,
       updated_at,
       author_email,
-      post_likes(count)
+      post_likes(count),
+      bookmarks(count)
     `)
     .eq("id", params.id)
     .single();
 
   if (postError || !post) {
     notFound();
+  }
+
+  // 現在のユーザーのブックマーク状態を取得
+  const { data: userBookmark, error: bookmarkError } = await supabase
+    .from("bookmarks")
+    .select("id")
+    .eq("post_id", params.id)
+    .eq("user_id", session.user.id)
+    .single();
+
+  if (bookmarkError && bookmarkError.code !== "PGRST116") {
+    console.error("Bookmark fetch error:", bookmarkError);
   }
 
   const { data: comments, error: commentsError } = await supabase
@@ -210,6 +224,11 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
           <LikeButton
             postId={post.id}
             initialLikeCount={post.post_likes?.[0]?.count || 0}
+          />
+          <BookmarkButton
+            postId={post.id}
+            isBookmarked={!!userBookmark}
+            skipInitialCheck={true}
           />
           <ShareButton postId={post.id} postTitle={post.title} />
         </div>
