@@ -64,6 +64,7 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<PostWithTags[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [bookmarkedPostIds, setBookmarkedPostIds] = useState<Set<string>>(new Set());
   const hasLoadedOnceRef = useRef(false);
 
   useEffect(() => {
@@ -72,12 +73,26 @@ export default function HomePage() {
     }
   }, [isSessionLoading, session]);
 
+  const loadBookmarks = async () => {
+    try {
+      const response = await fetch("/api/bookmarks/my");
+      if (response.ok) {
+        const { bookmarkedPostIds } = await response.json();
+        setBookmarkedPostIds(new Set(bookmarkedPostIds));
+      }
+    } catch (err) {
+      console.error("Failed to load bookmarks:", err);
+    }
+  };
+
   const loadPosts = async () => {
     setIsLoading(true);
     setError(null);
     try {
       const data = await fetchPosts();
       setPosts(data);
+      // ブックマーク一覧も同時に取得
+      await loadBookmarks();
     } catch (err) {
       setError(err instanceof Error ? err.message : "投稿の取得に失敗しました");
     } finally {
@@ -337,7 +352,20 @@ export default function HomePage() {
                         {post.bookmarks?.[0]?.count || 0}
                       </span>
                     </div>
-                    <BookmarkButton postId={post.id} />
+                    <BookmarkButton 
+                      postId={post.id} 
+                      isBookmarked={bookmarkedPostIds.has(post.id)}
+                      skipInitialCheck={true}
+                      onToggle={(isBookmarked) => {
+                        const newBookmarkedIds = new Set(bookmarkedPostIds);
+                        if (isBookmarked) {
+                          newBookmarkedIds.add(post.id);
+                        } else {
+                          newBookmarkedIds.delete(post.id);
+                        }
+                        setBookmarkedPostIds(newBookmarkedIds);
+                      }}
+                    />
                   </div>
                 </div>
               </article>

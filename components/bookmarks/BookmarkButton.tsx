@@ -8,23 +8,25 @@ interface BookmarkButtonProps {
   isBookmarked?: boolean;
   onToggle?: (isBookmarked: boolean) => void;
   className?: string;
+  skipInitialCheck?: boolean; // 初期状態チェックをスキップするかどうか
 }
 
 export default function BookmarkButton({ 
   postId, 
   isBookmarked = false, 
   onToggle,
-  className = ""
+  className = "",
+  skipInitialCheck = false
 }: BookmarkButtonProps) {
   const { session } = useSessionContext();
   const [isLoading, setIsLoading] = useState(false);
   const [bookmarked, setBookmarked] = useState(isBookmarked);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // 初期状態を取得
+  // 初期状態を取得（skipInitialCheckがfalseの場合のみ）
   useEffect(() => {
     const checkBookmarkStatus = async () => {
-      if (!session || isInitialized) return;
+      if (!session || isInitialized || skipInitialCheck) return;
 
       try {
         const response = await fetch(`/api/bookmarks?post_id=${postId}`);
@@ -41,7 +43,15 @@ export default function BookmarkButton({
     };
 
     checkBookmarkStatus();
-  }, [session, postId, isInitialized]);
+  }, [session, postId, isInitialized, skipInitialCheck]);
+
+  // skipInitialCheckがtrueの場合は、外部から渡されたisBookmarkedを直接使用
+  useEffect(() => {
+    if (skipInitialCheck) {
+      setBookmarked(isBookmarked);
+      setIsInitialized(true);
+    }
+  }, [skipInitialCheck, isBookmarked]);
 
   const handleToggle = async () => {
     if (!session) {
