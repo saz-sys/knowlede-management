@@ -65,6 +65,7 @@ export default function HomePage() {
   const [searchResults, setSearchResults] = useState<PostWithTags[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [bookmarkedPostIds, setBookmarkedPostIds] = useState<Set<string>>(new Set());
+  const [isFilterExpanded, setIsFilterExpanded] = useState(false);
   const hasLoadedOnceRef = useRef(false);
 
   useEffect(() => {
@@ -220,56 +221,73 @@ export default function HomePage() {
           </div>
         </div>
 
-        <section className="rounded-lg border bg-white p-4 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900">検索・フィルタ</h2>
+        <section className="rounded-lg border bg-white shadow-sm">
+          <button
+            onClick={() => setIsFilterExpanded(!isFilterExpanded)}
+            className="w-full p-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
+          >
+            <h2 className="text-lg font-semibold text-gray-900">検索・フィルタ</h2>
+            <svg
+              className={`w-5 h-5 text-gray-500 transition-transform ${isFilterExpanded ? 'rotate-180' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
           
-          {/* 検索フォーム */}
-          <div className="mt-4">
-            <PostSearch
-              onSearch={handleSearch}
-              placeholder="投稿を検索..."
-              className="mb-0"
-            />
-          </div>
-          
-          <div className="mt-4 flex flex-wrap gap-3 text-sm">
-            {["all", "manual", "rss"].map((key) => (
-              <button
-                key={key}
-                onClick={() => setSource(key as SourceFilter)}
-                className={`rounded-full px-3 py-1 transition ${
-                  source === key ? "bg-blue-600 text-white shadow" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                }`}
-              >
-                {key === "all" ? "すべて" : key === "manual" ? "ユーザー投稿" : "RSS投稿"}
-              </button>
-            ))}
-          </div>
-
-          {availableTags.length > 0 && (
-            <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700">タグ</label>
-              <div className="mt-2 flex flex-wrap gap-2">
-                <button
-                  onClick={() => setTag(null)}
-                  className={`rounded-full px-3 py-1 text-sm ${
-                    tag === null ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600"
-                  }`}
-                >
-                  すべて
-                </button>
-                {availableTags.map((availableTag) => (
+          {isFilterExpanded && (
+            <div className="px-4 pb-4 border-t border-gray-200">
+              {/* 検索フォーム */}
+              <div className="mt-4">
+                <PostSearch
+                  onSearch={handleSearch}
+                  placeholder="投稿を検索..."
+                  className="mb-0"
+                />
+              </div>
+              
+              <div className="mt-4 flex flex-wrap gap-3 text-sm">
+                {["all", "manual", "rss"].map((key) => (
                   <button
-                    key={availableTag}
-                    onClick={() => setTag(availableTag)}
-                    className={`rounded-full px-3 py-1 text-sm ${
-                      tag === availableTag ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600"
+                    key={key}
+                    onClick={() => setSource(key as SourceFilter)}
+                    className={`rounded-full px-3 py-1 transition ${
+                      source === key ? "bg-blue-600 text-white shadow" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                     }`}
                   >
-                    {availableTag}
+                    {key === "all" ? "すべて" : key === "manual" ? "ユーザー投稿" : "RSS投稿"}
                   </button>
                 ))}
               </div>
+
+              {availableTags.length > 0 && (
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700">タグ</label>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <button
+                      onClick={() => setTag(null)}
+                      className={`rounded-full px-3 py-1 text-sm ${
+                        tag === null ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      すべて
+                    </button>
+                    {availableTags.map((availableTag) => (
+                      <button
+                        key={availableTag}
+                        onClick={() => setTag(availableTag)}
+                        className={`rounded-full px-3 py-1 text-sm ${
+                          tag === availableTag ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600"
+                        }`}
+                      >
+                        {availableTag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </section>
@@ -287,89 +305,142 @@ export default function HomePage() {
             {searchQuery.trim() ? "検索結果が見つかりませんでした。" : "該当する投稿はありません。"}
           </section>
         ) : (
-          <div className="space-y-4">
-            {displayPosts.map((post) => (
-              <article key={post.id} className="ocean-card p-5 cursor-pointer hover:shadow-lg transition-shadow">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* メインコンテンツ */}
+            <div className="lg:col-span-2 space-y-4">
+              {displayPosts.map((post) => (
+                <article key={post.id} className="ocean-card p-4 cursor-pointer hover:shadow-lg transition-shadow">
                 <Link href={`/posts/${post.id}`} className="block">
                   <div className="flex items-center justify-between text-xs text-gray-500">
                     <span>投稿者: {post.author_email ?? "不明"}</span>
                     <span>{new Date(post.created_at).toLocaleString("ja-JP")}</span>
                   </div>
 
-                  <h3 className="mt-2 text-xl font-semibold text-gray-900 hover:text-blue-600 transition-colors">
+                  <h3 className="mt-1 text-lg font-semibold text-gray-900 hover:text-blue-600 transition-colors line-clamp-2">
                     {post.title}
                   </h3>
 
                   {post.summary ? (
-                    <p className="mt-2 text-sm text-gray-700 whitespace-pre-line">{createExcerpt(post.summary)}</p>
+                    <p className="mt-1 text-sm text-gray-600 line-clamp-2">{createExcerpt(post.summary, 120)}</p>
                   ) : post.content ? (
-                    <p className="mt-2 text-sm text-gray-700 whitespace-pre-line">{createExcerpt(post.content)}</p>
+                    <p className="mt-1 text-sm text-gray-600 line-clamp-2">{createExcerpt(post.content, 120)}</p>
                   ) : null}
 
-                  <div className="mt-3 flex flex-wrap gap-1 text-xs text-gray-500">
-                    {post.metadata?.source === "rss" ? (
-                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-amber-700">RSS</span>
-                    ) : (
-                      <span className="rounded-full bg-green-100 px-2 py-0.5 text-green-700">ユーザー</span>
-                    )}
-                    {post.post_tags?.map((item) => (
-                      <span key={item.tag.id} className="rounded-full bg-blue-100 px-2 py-0.5 text-blue-800">
-                        {item.tag.name}
-                      </span>
-                    ))}
+                  <div className="mt-2 flex items-center justify-between">
+                    <div className="flex flex-wrap gap-1 text-xs">
+                      {post.metadata?.source === "rss" ? (
+                        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-amber-700">RSS</span>
+                      ) : (
+                        <span className="rounded-full bg-green-100 px-2 py-0.5 text-green-700">ユーザー</span>
+                      )}
+                      {post.post_tags?.slice(0, 2).map((item) => (
+                        <span key={item.tag.id} className="rounded-full bg-blue-100 px-2 py-0.5 text-blue-800">
+                          {item.tag.name}
+                        </span>
+                      ))}
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      {/* コメント数とブックマーク数を表示 */}
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <span className="flex items-center gap-1">
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                          </svg>
+                          {post.comments?.[0]?.count || 0}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                          </svg>
+                          {post.bookmarks?.[0]?.count || 0}
+                        </span>
+                      </div>
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <BookmarkButton 
+                          postId={post.id} 
+                          isBookmarked={bookmarkedPostIds.has(post.id)}
+                          skipInitialCheck={true}
+                          onToggle={(isBookmarked) => {
+                            const newBookmarkedIds = new Set(bookmarkedPostIds);
+                            if (isBookmarked) {
+                              newBookmarkedIds.add(post.id);
+                            } else {
+                              newBookmarkedIds.delete(post.id);
+                            }
+                            setBookmarkedPostIds(newBookmarkedIds);
+                          }}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </Link>
+              </article>
+              ))}
+            </div>
 
-                <div className="mt-4 flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    {post.url && (
-                      <a
-                        href={post.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        記事を開く →
-                      </a>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-3">
-                    {/* コメント数とブックマーク数を表示 */}
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                      <span className="flex items-center gap-1">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                        </svg>
-                        {post.comments?.[0]?.count || 0}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                        </svg>
-                        {post.bookmarks?.[0]?.count || 0}
-                      </span>
-                    </div>
-                    <div onClick={(e) => e.stopPropagation()}>
-                      <BookmarkButton 
-                        postId={post.id} 
-                        isBookmarked={bookmarkedPostIds.has(post.id)}
-                        skipInitialCheck={true}
-                        onToggle={(isBookmarked) => {
-                          const newBookmarkedIds = new Set(bookmarkedPostIds);
-                          if (isBookmarked) {
-                            newBookmarkedIds.add(post.id);
-                          } else {
-                            newBookmarkedIds.delete(post.id);
-                          }
-                          setBookmarkedPostIds(newBookmarkedIds);
-                        }}
-                      />
-                    </div>
+            {/* サイドバー - ランキング */}
+            <div className="lg:col-span-1">
+              <div className="sticky top-4 space-y-4">
+                {/* コメント数ランキング */}
+                <div className="bg-white rounded-lg border p-4 shadow-sm">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                    コメント数ランキング
+                  </h3>
+                  <div className="space-y-2">
+                    {displayPosts
+                      .filter(post => (post.comments?.[0]?.count || 0) > 0)
+                      .sort((a, b) => (b.comments?.[0]?.count || 0) - (a.comments?.[0]?.count || 0))
+                      .slice(0, 5)
+                      .map((post, index) => (
+                        <Link
+                          key={post.id}
+                          href={`/posts/${post.id}`}
+                          className="block p-2 rounded hover:bg-gray-50 transition-colors"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-gray-500 w-6">#{index + 1}</span>
+                            <span className="text-xs text-gray-500">{(post.comments?.[0]?.count || 0)}</span>
+                          </div>
+                          <p className="text-sm text-gray-900 line-clamp-2 mt-1">{post.title}</p>
+                        </Link>
+                      ))}
                   </div>
                 </div>
-              </article>
-            ))}
+
+                {/* ブックマーク数ランキング */}
+                <div className="bg-white rounded-lg border p-4 shadow-sm">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                    </svg>
+                    ブックマーク数ランキング
+                  </h3>
+                  <div className="space-y-2">
+                    {displayPosts
+                      .filter(post => (post.bookmarks?.[0]?.count || 0) > 0)
+                      .sort((a, b) => (b.bookmarks?.[0]?.count || 0) - (a.bookmarks?.[0]?.count || 0))
+                      .slice(0, 5)
+                      .map((post, index) => (
+                        <Link
+                          key={post.id}
+                          href={`/posts/${post.id}`}
+                          className="block p-2 rounded hover:bg-gray-50 transition-colors"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-gray-500 w-6">#{index + 1}</span>
+                            <span className="text-xs text-gray-500">{(post.bookmarks?.[0]?.count || 0)}</span>
+                          </div>
+                          <p className="text-sm text-gray-900 line-clamp-2 mt-1">{post.title}</p>
+                        </Link>
+                      ))}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </main>
