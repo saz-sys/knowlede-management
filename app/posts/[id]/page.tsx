@@ -76,7 +76,7 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
   }
 
   // プロフィール情報を取得
-  const authorIds = [...new Set(comments?.map(c => c.author_id) || [])];
+  const authorIds = Array.from(new Set(comments?.map(c => c.author_id) || []));
   const { data: profiles, error: profilesError } = await supabase
     .from("profiles")
     .select("id, name, email")

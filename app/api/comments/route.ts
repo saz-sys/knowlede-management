@@ -170,8 +170,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Failed to fetch comments" }, { status: 500 });
     }
 
-    // プロフィール情報を取得
-    const authorIds = [...new Set(comments?.map(c => c.author_id) || [])];
+        // プロフィール情報を取得
+        const authorIds = Array.from(new Set(comments?.map(c => c.author_id) || []));
     const { data: profiles, error: profilesError } = await supabase
       .from("profiles")
       .select("id, name, email")
