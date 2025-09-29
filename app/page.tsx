@@ -6,6 +6,7 @@ import { useSessionContext } from "@supabase/auth-helpers-react";
 import type { Post } from "@/lib/types/posts";
 import BookmarkButton from "@/components/bookmarks/BookmarkButton";
 import PostSearch from "@/components/posts/PostSearch";
+import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 
 type SourceFilter = "all" | "manual" | "rss";
 
@@ -15,7 +16,12 @@ interface PostWithTags extends Post {
   bookmarks?: { count: number }[];
 }
 
-async function fetchPosts(params: { source?: SourceFilter; tag?: string } = {}) {
+async function fetchPosts(params: { 
+  source?: SourceFilter; 
+  tag?: string; 
+  page?: number; 
+  limit?: number;
+} = {}) {
   const query = new URLSearchParams();
   if (params.source && params.source !== "all") {
     query.set("source", params.source);
@@ -23,14 +29,20 @@ async function fetchPosts(params: { source?: SourceFilter; tag?: string } = {}) 
   if (params.tag) {
     query.set("tag", params.tag);
   }
+  if (params.page) {
+    query.set("page", params.page.toString());
+  }
+  if (params.limit) {
+    query.set("limit", params.limit.toString());
+  }
 
   const response = await fetch(`/api/posts?${query.toString()}`);
   if (!response.ok) {
     const data = await response.json().catch(() => null);
     throw new Error(data?.error ?? "投稿の取得に失敗しました");
   }
-  const { posts } = await response.json();
-  return posts as PostWithTags[];
+  const { posts, pagination } = await response.json();
+  return { posts: posts as PostWithTags[], pagination };
 }
 
 function deriveTags(posts: PostWithTags[]) {
@@ -58,6 +70,7 @@ export default function HomePage() {
   const { session, isLoading: isSessionLoading } = useSessionContext();
   const [posts, setPosts] = useState<PostWithTags[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [source, setSource] = useState<SourceFilter>("all");
   const [tag, setTag] = useState<string | null>(null);
@@ -66,6 +79,11 @@ export default function HomePage() {
   const [isSearching, setIsSearching] = useState(false);
   const [bookmarkedPostIds, setBookmarkedPostIds] = useState<Set<string>>(new Set());
   const [isFilterExpanded, setIsFilterExpanded] = useState(false);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    hasMore: true,
+    total: 0
+  });
   const hasLoadedOnceRef = useRef(false);
 
   useEffect(() => {
@@ -86,19 +104,51 @@ export default function HomePage() {
     }
   };
 
-  const loadPosts = async () => {
-    setIsLoading(true);
-    setError(null);
+  const loadPosts = async (reset = true) => {
+    if (reset) {
+      setIsLoading(true);
+      setError(null);
+    } else {
+      setIsLoadingMore(true);
+    }
+    
     try {
-      const data = await fetchPosts();
-      setPosts(data);
-      // ブックマーク一覧も同時に取得
-      await loadBookmarks();
+      const { posts: newPosts, pagination: newPagination } = await fetchPosts({
+        source,
+        tag,
+        page: reset ? 1 : pagination.page + 1,
+        limit: 10
+      });
+      
+      if (reset) {
+        setPosts(newPosts);
+        setPagination({
+          page: 1,
+          hasMore: newPagination.hasMore,
+          total: newPagination.total
+        });
+        // ブックマーク一覧も同時に取得
+        await loadBookmarks();
+      } else {
+        setPosts(prev => [...prev, ...newPosts]);
+        setPagination(prev => ({
+          ...prev,
+          page: newPagination.page,
+          hasMore: newPagination.hasMore,
+          total: newPagination.total
+        }));
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "投稿の取得に失敗しました");
     } finally {
       setIsLoading(false);
+      setIsLoadingMore(false);
     }
+  };
+
+  const loadMorePosts = () => {
+    if (!pagination.hasMore || isLoadingMore || isSearching) return;
+    loadPosts(false);
   };
 
   const handleSearch = async (query: string) => {
@@ -165,9 +215,16 @@ export default function HomePage() {
   useEffect(() => {
     if (session && !hasLoadedOnceRef.current) {
       hasLoadedOnceRef.current = true;
-      loadPosts();
+      loadPosts(true);
     }
   }, [session]);
+
+  // フィルタ変更時に投稿を再読み込み
+  useEffect(() => {
+    if (session && hasLoadedOnceRef.current) {
+      loadPosts(true);
+    }
+  }, [source, tag]);
 
   const availableTags = useMemo(() => deriveTags(posts), [posts]);
 
@@ -177,17 +234,16 @@ export default function HomePage() {
       return searchResults;
     }
     
-    // 通常のフィルタリング
-    return posts.filter((post) => {
-      const isRss = post.metadata?.source === "rss";
-      const matchesSource =
-        source === "all" ? true : source === "manual" ? !isRss : isRss;
-      const matchesTag = tag
-        ? post.post_tags?.some((item) => item.tag.name === tag) ?? false
-        : true;
-      return matchesSource && matchesTag;
-    });
-  }, [posts, source, tag, searchQuery, searchResults]);
+    // 通常のフィルタリング（APIでフィルタリング済みなのでそのまま返す）
+    return posts;
+  }, [posts, searchQuery, searchResults]);
+
+  // 無限スクロールの設定
+  const { loadMoreRef } = useInfiniteScroll({
+    hasMore: pagination.hasMore && !isSearching,
+    isLoading: isLoadingMore,
+    onLoadMore: loadMorePosts,
+  });
 
   if (isSessionLoading || !session) {
     return (
@@ -292,9 +348,9 @@ export default function HomePage() {
           )}
         </section>
 
-        {isLoading || isSearching ? (
+        {isLoading ? (
           <section className="rounded-lg border bg-white p-8 text-center text-sm text-gray-600 shadow-sm">
-            {isSearching ? "検索中です…" : "読み込み中です…"}
+            読み込み中です…
           </section>
         ) : error ? (
           <section className="rounded-lg border bg-white p-8 text-center text-sm text-red-600 shadow-sm">
@@ -377,6 +433,16 @@ export default function HomePage() {
                 </Link>
               </article>
               ))}
+              
+              {/* 無限スクロール用のトリガー要素 */}
+              <div ref={loadMoreRef} className="flex justify-center py-4">
+                {isLoadingMore && (
+                  <div className="text-sm text-gray-500">読み込み中...</div>
+                )}
+                {!pagination.hasMore && displayPosts.length > 0 && (
+                  <div className="text-sm text-gray-500">すべての投稿を読み込みました</div>
+                )}
+              </div>
             </div>
 
             {/* サイドバー - ランキング */}

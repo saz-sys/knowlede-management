@@ -116,14 +116,23 @@ export async function GET(request: NextRequest) {
       error: authError
     } = await supabase.auth.getSession();
 
-    if (authError || !session) {
+    if (authError) {
+      console.error("Auth error:", authError);
+      return NextResponse.json({ error: "Authentication failed" }, { status: 401 });
+    }
+
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
     const tag = searchParams.get("tag");
     const source = searchParams.get("source");
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const limit = parseInt(searchParams.get("limit") || "10", 10);
+    const offset = (page - 1) * limit;
 
+    // まず基本的なクエリを構築
     let query = supabase
       .from("posts")
       .select(
@@ -144,8 +153,10 @@ export async function GET(request: NextRequest) {
           bookmarks(count)
         `
       )
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limit - 1);
 
+    // フィルタ条件を適用
     if (tag) {
       query = query.contains("post_tags", [{ tag: { name: tag } }]);
     }
@@ -163,7 +174,19 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Failed to fetch posts" }, { status: 500 });
     }
 
-    return NextResponse.json({ posts });
+    // 一時的にカウントクエリを無効化してテスト
+    const hasMore = posts.length === limit;
+    
+    return NextResponse.json({ 
+      posts, 
+      pagination: {
+        page,
+        limit,
+        total: posts.length,
+        totalPages: page + (hasMore ? 1 : 0),
+        hasMore
+      }
+    });
   } catch (error) {
     console.error("Unexpected error while fetching posts", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
