@@ -1,28 +1,9 @@
 {
   "cron": [
     {
-      "name": "rss-fetch-high-frequency",
-      "schedule": "*/30 * * * *",
-      "function": "rss-fetch",
-      "payload": {
-        "frequency": "high"
-      }
-    },
-    {
-      "name": "rss-fetch-medium-frequency", 
-      "schedule": "0 */2 * * *",
-      "function": "rss-fetch",
-      "payload": {
-        "frequency": "medium"
-      }
-    },
-    {
-      "name": "rss-fetch-low-frequency",
-      "schedule": "0 */6 * * *", 
-      "function": "rss-fetch",
-      "payload": {
-        "frequency": "low"
-      }
+      "name": "rss-fetch-scheduled",
+      "schedule": "0 */1 * * *",
+      "function": "rss-fetch"
     }
   ]
 }

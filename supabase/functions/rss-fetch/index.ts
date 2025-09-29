@@ -318,10 +318,12 @@ Deno.serve(async (req) => {
   const start = Date.now();
   console.log("[rss-fetch] Handler invoked", {
     method: req.method,
-    url: req.url
+    url: req.url,
+    headers: Object.fromEntries(req.headers.entries())
   });
 
-  if (req.method !== "POST") {
+  // GETリクエストも許可（cron実行時の互換性のため）
+  if (req.method !== "POST" && req.method !== "GET") {
     return new Response(JSON.stringify({ ok: false, reason: "Method not allowed" }), {
       status: 405,
       headers: { "Content-Type": "application/json" }
@@ -332,8 +334,18 @@ Deno.serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const bodyText = await req.text().catch(() => "{}");
-    const body = bodyText ? JSON.parse(bodyText || "{}") : {};
+    let body = {};
+    
+    // POSTリクエストの場合のみボディを解析
+    if (req.method === "POST") {
+      try {
+        const bodyText = await req.text();
+        body = bodyText ? JSON.parse(bodyText) : {};
+      } catch (error) {
+        console.warn("[rss-fetch] Failed to parse request body", error);
+      }
+    }
+    
     const feedId = body?.feed_id ?? url.searchParams.get("feed_id") ?? null;
 
     const feeds = await fetchFeeds(supabase, feedId);
