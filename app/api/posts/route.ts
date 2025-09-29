@@ -133,27 +133,23 @@ export async function GET(request: NextRequest) {
     const offset = (page - 1) * limit;
 
     // まず基本的なクエリを構築
-    let query = supabase
-      .from("posts")
-      .select(
-        `
-          id,
-          author_id,
-          author_email,
-          title,
-          url,
-          content,
-          summary,
-          notified_channels,
-          metadata,
-          created_at,
-          updated_at,
-          post_tags(tag:tags(id, name)),
+           let query = supabase
+             .from("posts")
+             .select(
+               `
+                 id,
+                 author_email,
+                 title,
+                 url,
+                 summary,
+                 metadata,
+                 created_at,
+                 post_tags(tag:tags(name)),
                  comments(count),
                  bookmarks(count),
                  post_likes(count)
-        `
-      )
+               `
+             )
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
 

@@ -74,6 +74,7 @@ export default function HomePage() {
   const [posts, setPosts] = useState<PostWithTags[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [source, setSource] = useState<SourceFilter>("all");
   const [tag, setTag] = useState<string | null>(null);
@@ -145,6 +146,7 @@ export default function HomePage() {
         });
         // ブックマーク一覧といいね一覧も同時に取得
         await Promise.all([loadBookmarks(), loadLikes()]);
+        setIsInitialLoad(false);
       } else {
         setPosts(prev => [...prev, ...newPosts]);
         setPagination(prev => ({
@@ -365,9 +367,29 @@ export default function HomePage() {
         </section>
 
         {isLoading ? (
-          <section className="rounded-lg border bg-white p-8 text-center text-sm text-gray-600 shadow-sm">
-            読み込み中です…
-          </section>
+          <div className="space-y-4">
+            {Array.from({ length: 5 }).map((_, index) => (
+              <div key={index} className="ocean-card p-4 animate-pulse">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="h-3 bg-gray-200 rounded w-32"></div>
+                  <div className="h-3 bg-gray-200 rounded w-24"></div>
+                </div>
+                <div className="h-5 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-2/3 mb-2"></div>
+                <div className="flex items-center justify-between">
+                  <div className="flex gap-2">
+                    <div className="h-6 bg-gray-200 rounded-full w-16"></div>
+                    <div className="h-6 bg-gray-200 rounded-full w-20"></div>
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="h-6 bg-gray-200 rounded w-6"></div>
+                    <div className="h-6 bg-gray-200 rounded w-6"></div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         ) : error ? (
           <section className="rounded-lg border bg-white p-8 text-center text-sm text-red-600 shadow-sm">
             {error}
@@ -380,7 +402,7 @@ export default function HomePage() {
           <div className="space-y-4">
               {displayPosts.map((post) => (
               <article key={post.id} className="ocean-card p-4 hover:shadow-lg transition-shadow">
-                <Link href={`/posts/${post.id}`} className="block">
+                <Link href={`/posts/${post.id}`} className="block" prefetch={true}>
                   <div className="flex items-center justify-between text-xs text-gray-500">
                     <span>投稿者: {post.author_email ?? "不明"}</span>
                     <span>{new Date(post.created_at).toLocaleString("ja-JP")}</span>

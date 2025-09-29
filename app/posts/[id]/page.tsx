@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: PostDetailPageProps): Promise
   
   const { data: post } = await supabase
     .from("posts")
-    .select("title, summary, content, author_email, created_at")
+    .select("title, summary, author_email, created_at")
     .eq("id", params.id)
     .single();
 
@@ -42,7 +42,7 @@ export async function generateMetadata({ params }: PostDetailPageProps): Promise
     };
   }
 
-  const description = post.summary || post.content || "Tech Reefで共有された記事です。";
+  const description = post.summary || "Tech Reefで共有された記事です。";
   const truncatedDescription = description.length > 160 
     ? description.substring(0, 160) + "..." 
     : description;
