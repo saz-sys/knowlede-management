@@ -53,7 +53,10 @@ export default function BookmarkButton({
     }
   }, [skipInitialCheck, isBookmarked]);
 
-  const handleToggle = async () => {
+  const handleToggle = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     if (!session) {
       alert("ログインが必要です");
       return;

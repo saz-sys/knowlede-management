@@ -5,8 +5,10 @@ import Link from "next/link";
 import { useSessionContext } from "@supabase/auth-helpers-react";
 import type { Post } from "@/lib/types/posts";
 import BookmarkButton from "@/components/bookmarks/BookmarkButton";
+import LikeButton from "@/components/posts/LikeButton";
 import PostSearch from "@/components/posts/PostSearch";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
+import { Metadata } from "next";
 
 type SourceFilter = "all" | "manual" | "rss";
 
@@ -14,6 +16,7 @@ interface PostWithTags extends Post {
   post_tags?: { tag: { id: string; name: string } }[];
   comments?: { count: number }[];
   bookmarks?: { count: number }[];
+  post_likes?: { count: number }[];
 }
 
 async function fetchPosts(params: { 
@@ -78,6 +81,7 @@ export default function HomePage() {
   const [searchResults, setSearchResults] = useState<PostWithTags[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [bookmarkedPostIds, setBookmarkedPostIds] = useState<Set<string>>(new Set());
+  const [likedPostIds, setLikedPostIds] = useState<Set<string>>(new Set());
   const [isFilterExpanded, setIsFilterExpanded] = useState(false);
   const [pagination, setPagination] = useState({
     page: 1,
@@ -104,6 +108,18 @@ export default function HomePage() {
     }
   };
 
+  const loadLikes = async () => {
+    try {
+      const response = await fetch("/api/posts/my-likes");
+      if (response.ok) {
+        const { likedPostIds } = await response.json();
+        setLikedPostIds(new Set(likedPostIds));
+      }
+    } catch (err) {
+      console.error("Failed to load likes:", err);
+    }
+  };
+
   const loadPosts = async (reset = true) => {
     if (reset) {
       setIsLoading(true);
@@ -127,8 +143,8 @@ export default function HomePage() {
           hasMore: newPagination.hasMore,
           total: newPagination.total
         });
-        // ブックマーク一覧も同時に取得
-        await loadBookmarks();
+        // ブックマーク一覧といいね一覧も同時に取得
+        await Promise.all([loadBookmarks(), loadLikes()]);
       } else {
         setPosts(prev => [...prev, ...newPosts]);
         setPagination(prev => ({
@@ -361,11 +377,9 @@ export default function HomePage() {
             {searchQuery.trim() ? "検索結果が見つかりませんでした。" : "該当する投稿はありません。"}
           </section>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* メインコンテンツ */}
-            <div className="lg:col-span-2 space-y-4">
+          <div className="space-y-4">
               {displayPosts.map((post) => (
-                <article key={post.id} className="ocean-card p-4 cursor-pointer hover:shadow-lg transition-shadow">
+              <article key={post.id} className="ocean-card p-4 hover:shadow-lg transition-shadow">
                 <Link href={`/posts/${post.id}`} className="block">
                   <div className="flex items-center justify-between text-xs text-gray-500">
                     <span>投稿者: {post.author_email ?? "不明"}</span>
@@ -396,116 +410,72 @@ export default function HomePage() {
                       ))}
                     </div>
                     
-                    <div className="flex items-center gap-3">
-                      {/* コメント数とブックマーク数を表示 */}
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
-                        <span className="flex items-center gap-1">
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                          </svg>
-                          {post.comments?.[0]?.count || 0}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                          </svg>
-                          {post.bookmarks?.[0]?.count || 0}
-                        </span>
-                      </div>
-                      <div onClick={(e) => e.stopPropagation()}>
-                        <BookmarkButton 
-                          postId={post.id} 
-                          isBookmarked={bookmarkedPostIds.has(post.id)}
-                          skipInitialCheck={true}
-                          onToggle={(isBookmarked) => {
-                            const newBookmarkedIds = new Set(bookmarkedPostIds);
-                            if (isBookmarked) {
-                              newBookmarkedIds.add(post.id);
-                            } else {
-                              newBookmarkedIds.delete(post.id);
-                            }
-                            setBookmarkedPostIds(newBookmarkedIds);
-                          }}
-                        />
-                      </div>
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <span className="flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                        {post.comments?.[0]?.count || 0}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                        </svg>
+                        {post.bookmarks?.[0]?.count || 0}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                        {post.post_likes?.[0]?.count || 0}
+                      </span>
                     </div>
                   </div>
                 </Link>
+                
+                {/* ボタンエリアをLinkの外に配置 */}
+                <div className="mt-2 flex items-center justify-end gap-1">
+                  <LikeButton 
+                    postId={post.id}
+                    initialLikeCount={post.post_likes?.[0]?.count || 0}
+                    initialIsLiked={likedPostIds.has(post.id)}
+                    skipInitialCheck={true}
+                    onToggle={(isLiked) => {
+                      const newLikedIds = new Set(likedPostIds);
+                      if (isLiked) {
+                        newLikedIds.add(post.id);
+                      } else {
+                        newLikedIds.delete(post.id);
+                      }
+                      setLikedPostIds(newLikedIds);
+                    }}
+                  />
+                  <BookmarkButton 
+                    postId={post.id} 
+                    isBookmarked={bookmarkedPostIds.has(post.id)}
+                    skipInitialCheck={true}
+                    onToggle={(isBookmarked) => {
+                      const newBookmarkedIds = new Set(bookmarkedPostIds);
+                      if (isBookmarked) {
+                        newBookmarkedIds.add(post.id);
+                      } else {
+                        newBookmarkedIds.delete(post.id);
+                      }
+                      setBookmarkedPostIds(newBookmarkedIds);
+                    }}
+                  />
+                </div>
               </article>
               ))}
               
-              {/* 無限スクロール用のトリガー要素 */}
-              <div ref={loadMoreRef} className="flex justify-center py-4">
-                {isLoadingMore && (
-                  <div className="text-sm text-gray-500">読み込み中...</div>
-                )}
-                {!pagination.hasMore && displayPosts.length > 0 && (
-                  <div className="text-sm text-gray-500">すべての投稿を読み込みました</div>
-                )}
-              </div>
-            </div>
-
-            {/* サイドバー - ランキング */}
-            <div className="lg:col-span-1">
-              <div className="sticky top-4 space-y-4">
-                {/* コメント数ランキング */}
-                <div className="bg-white rounded-lg border p-4 shadow-sm">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                    </svg>
-                    コメント数ランキング
-                  </h3>
-                  <div className="space-y-2">
-                    {displayPosts
-                      .filter(post => (post.comments?.[0]?.count || 0) > 0)
-                      .sort((a, b) => (b.comments?.[0]?.count || 0) - (a.comments?.[0]?.count || 0))
-                      .slice(0, 5)
-                      .map((post, index) => (
-                        <Link
-                          key={post.id}
-                          href={`/posts/${post.id}`}
-                          className="block p-2 rounded hover:bg-gray-50 transition-colors"
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-gray-500 w-6">#{index + 1}</span>
-                            <span className="text-xs text-gray-500">{(post.comments?.[0]?.count || 0)}</span>
-                          </div>
-                          <p className="text-sm text-gray-900 line-clamp-2 mt-1">{post.title}</p>
-                        </Link>
-                      ))}
-                  </div>
-                </div>
-
-                {/* ブックマーク数ランキング */}
-                <div className="bg-white rounded-lg border p-4 shadow-sm">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                    <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                    </svg>
-                    ブックマーク数ランキング
-                  </h3>
-                  <div className="space-y-2">
-                    {displayPosts
-                      .filter(post => (post.bookmarks?.[0]?.count || 0) > 0)
-                      .sort((a, b) => (b.bookmarks?.[0]?.count || 0) - (a.bookmarks?.[0]?.count || 0))
-                      .slice(0, 5)
-                      .map((post, index) => (
-                        <Link
-                          key={post.id}
-                          href={`/posts/${post.id}`}
-                          className="block p-2 rounded hover:bg-gray-50 transition-colors"
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-gray-500 w-6">#{index + 1}</span>
-                            <span className="text-xs text-gray-500">{(post.bookmarks?.[0]?.count || 0)}</span>
-                          </div>
-                          <p className="text-sm text-gray-900 line-clamp-2 mt-1">{post.title}</p>
-                        </Link>
-                      ))}
-                  </div>
-                </div>
-              </div>
+            {/* 無限スクロール用のトリガー要素 */}
+            <div ref={loadMoreRef} className="flex justify-center py-4">
+              {isLoadingMore && (
+                <div className="text-sm text-gray-500">読み込み中...</div>
+              )}
+              {!pagination.hasMore && displayPosts.length > 0 && (
+                <div className="text-sm text-gray-500">すべての投稿を読み込みました</div>
+              )}
             </div>
           </div>
         )}

@@ -1,7 +1,9 @@
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
+import { Metadata } from "next";
 import CommentThread from "@/components/comments/CommentThread";
+import LikeButton from "@/components/posts/LikeButton";
 import { Comment } from "@/lib/types/comments";
 
 interface PostDetailPageProps {
@@ -23,6 +25,46 @@ function createExcerpt(text: string, maxLength = 200) {
   const truncated = cutIndex > maxLength * 0.5 ? slice.slice(0, cutIndex) : slice;
 
   return `${truncated.trimEnd()}…`;
+}
+
+export async function generateMetadata({ params }: PostDetailPageProps): Promise<Metadata> {
+  const supabase = createServerComponentClient({ cookies });
+  
+  const { data: post } = await supabase
+    .from("posts")
+    .select("title, summary, content, author_email, created_at")
+    .eq("id", params.id)
+    .single();
+
+  if (!post) {
+    return {
+      title: "投稿が見つかりません | Tech Reef",
+    };
+  }
+
+  const description = post.summary || post.content || "Tech Reefで共有された記事です。";
+  const truncatedDescription = description.length > 160 
+    ? description.substring(0, 160) + "..." 
+    : description;
+
+  return {
+    title: `${post.title} | Tech Reef`,
+    description: truncatedDescription,
+    openGraph: {
+      title: post.title,
+      description: truncatedDescription,
+      type: "article",
+      publishedTime: post.created_at,
+      authors: [post.author_email || "Tech Reef"],
+      siteName: "Tech Reef",
+      locale: "ja_JP",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.title,
+      description: truncatedDescription,
+    },
+  };
 }
 
 export default async function PostDetailPage({ params }: PostDetailPageProps) {
@@ -47,7 +89,8 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
       metadata,
       created_at,
       updated_at,
-      author_email
+      author_email,
+      post_likes(count)
     `)
     .eq("id", params.id)
     .single();
@@ -161,6 +204,13 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
             </a>
           </div>
         )}
+
+        <div className="mb-4 flex items-center gap-4">
+          <LikeButton 
+            postId={post.id}
+            initialLikeCount={post.post_likes?.[0]?.count || 0}
+          />
+        </div>
 
         {summaryText && (
           <div className="mb-4 p-4 bg-gray-50 rounded-lg">

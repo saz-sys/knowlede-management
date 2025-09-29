@@ -149,8 +149,9 @@ export async function GET(request: NextRequest) {
           created_at,
           updated_at,
           post_tags(tag:tags(id, name)),
-          comments(count),
-          bookmarks(count)
+                 comments(count),
+                 bookmarks(count),
+                 post_likes(count)
         `
       )
       .order("created_at", { ascending: false })

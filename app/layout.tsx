@@ -19,7 +19,15 @@ export const metadata: Metadata = {
     title: "Tech Reef",
     description: "エンジニアの知識共有プラットフォーム",
     images: ["/branding/og-image.png"],
-    type: "website"
+    type: "website",
+    siteName: "Tech Reef",
+    locale: "ja_JP"
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Tech Reef",
+    description: "エンジニアの知識共有プラットフォーム",
+    images: ["/branding/og-image.png"]
   }
 };
 
