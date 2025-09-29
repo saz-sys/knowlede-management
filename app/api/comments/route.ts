@@ -2,6 +2,7 @@ import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { CreateCommentRequest } from "@/lib/types/comments";
+import { sendCommentNotification } from "@/lib/slack/notification";
 
 export async function POST(request: NextRequest) {
   try {
@@ -72,6 +73,55 @@ export async function POST(request: NextRequest) {
     if (insertError) {
       console.error("Comment creation error:", insertError);
       return NextResponse.json({ error: "Failed to create comment" }, { status: 500 });
+    }
+
+    // 投稿者にSlack通知を送信（非同期で実行）
+    try {
+      // 投稿情報と投稿者のプロフィール情報を取得
+      const { data: post, error: postError } = await supabase
+        .from("posts")
+        .select(`
+          title, 
+          author_email,
+          author_id
+        `)
+        .eq("id", post_id)
+        .single();
+
+      if (!postError && post) {
+        // 投稿者のプロフィール情報を取得
+        const { data: postAuthor, error: postAuthorError } = await supabase
+          .from("profiles")
+          .select("name, email")
+          .eq("id", post.author_id)
+          .single();
+
+        // コメント投稿者の情報を取得
+        const { data: commentAuthor, error: authorError } = await supabase
+          .from("profiles")
+          .select("name, email")
+          .eq("id", session.user.id)
+          .single();
+
+        const authorName = commentAuthor?.name || commentAuthor?.email || "不明なユーザー";
+        const postUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/posts/${post_id}`;
+
+
+        // Slack通知を送信（非同期で実行、エラーはログのみ）
+        sendCommentNotification({
+          postTitle: post.title,
+          postUrl: postUrl,
+          commentAuthor: authorName,
+          commentContent: content,
+          postAuthorEmail: post.author_email || "不明",
+          postAuthorName: postAuthor?.name
+        }).catch(error => {
+          console.error("Failed to send Slack notification:", error);
+        });
+      }
+    } catch (notificationError) {
+      console.error("Error preparing Slack notification:", notificationError);
+      // 通知エラーはコメント作成を阻害しない
     }
 
     return NextResponse.json({ comment }, { status: 201 });
