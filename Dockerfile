@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM node:20-alpine AS base
+FROM node:22-alpine AS base
 
 ENV PNPM_HOME="/pnpm" \
     PATH="$PNPM_HOME:$PATH" \
@@ -11,6 +11,9 @@ RUN apk add --no-cache bash git openssh curl && \
     corepack enable
 # ubuntu系
 # RUN apt-get update && apt-get install -y bash
+
+# Update npm to latest version for Safe Chain compatibility
+RUN npm install -g npm@latest
 
 WORKDIR /app
 
