@@ -271,3 +271,54 @@
     - _Requirements: 重複投稿防止
     - Success: 手動テストで重複投稿がブロックされ、案内モーダルが表示される
     - Instructions: tasks.mdの当該行を開始時に`- [ ]`→`- [-]`、完了時に`- [x]`へ更新すること
+
+- [ ] TASK-018 コメント数ランキングページ
+  - 対応要件: 分析指標・利用促進（新規）
+  - 対応ファイル/モジュール: `app/(dashboard)/rankings/comments/page.tsx`, `app/api/rankings/comments/route.ts`, `components/rankings/CommentRankingTable.tsx`
+  - 作業内容:
+    - 記事ごとのコメント数を集計してランキング表示するページを作成
+    - 期間別フィルター（日別、週別、月別）とページネーション機能を実装
+    - コメント数・投稿者・投稿日・記事タイトルを表示するテーブルUIを構築
+  - 完了条件: ランキングページでコメント数順の記事一覧が表示され、期間フィルターが動作する
+  - _Prompt:
+    - Role: フルスタックエンジニア（Next.js + Supabase）
+    - Task: Implement the task for spec engineering-knowledge-sharing, first run spec-workflow-guide to get the workflow guide then implement the task: コメント数ランキングページとAPIを実装し、期間フィルターとページネーション機能を提供する
+    - Restrictions: パフォーマンスを考慮したクエリ設計、RLS制約を尊重
+    - _Leverage: 既存投稿一覧UI, Supabase集計クエリ
+    - _Requirements: 分析指標・利用促進
+    - Success: ランキングデータが正しく表示され、フィルター機能が動作する
+    - Instructions: tasks.mdの当該行を開始時に`- [ ]`→`- [-]`、完了時に`- [x]`へ更新すること
+
+- [ ] TASK-019 ブックマークランキングページ
+  - 対応要件: 分析指標・利用促進（新規）
+  - 対応ファイル/モジュール: `app/(dashboard)/rankings/bookmarks/page.tsx`, `app/api/rankings/bookmarks/route.ts`, `components/rankings/BookmarkRankingTable.tsx`
+  - 作業内容:
+    - 記事ごとのブックマーク数を集計してランキング表示するページを作成
+    - 期間別フィルター（日別、週別、月別）とページネーション機能を実装
+    - ブックマーク数・投稿者・投稿日・記事タイトルを表示するテーブルUIを構築
+  - 完了条件: ランキングページでブックマーク数順の記事一覧が表示され、期間フィルターが動作する
+  - _Prompt:
+    - Role: フルスタックエンジニア（Next.js + Supabase）
+    - Task: Implement the task for spec engineering-knowledge-sharing, first run spec-workflow-guide to get the workflow guide then implement the task: ブックマーク数ランキングページとAPIを実装し、期間フィルターとページネーション機能を提供する
+    - Restrictions: パフォーマンスを考慮したクエリ設計、RLS制約を尊重
+    - _Leverage: 既存投稿一覧UI, Supabase集計クエリ
+    - _Requirements: 分析指標・利用促進
+    - Success: ランキングデータが正しく表示され、フィルター機能が動作する
+    - Instructions: tasks.mdの当該行を開始時に`- [ ]`→`- [-]`、完了時に`- [x]`へ更新すること
+
+- [ ] TASK-020 ランキングナビゲーション統合
+  - 対応要件: ナビゲーション改善（新規）
+  - 対応ファイル/モジュール: `components/Header.tsx`, `app/(dashboard)/rankings/page.tsx`, `components/rankings/RankingNavigation.tsx`
+  - 作業内容:
+    - ヘッダーにランキングページへのリンクを追加
+    - ランキング一覧ページ（コメント・ブックマーク）を作成
+    - ランキングセクションのナビゲーションコンポーネントを実装
+  - 完了条件: ヘッダーからランキングページにアクセスでき、各ランキングページへの導線が整備される
+  - _Prompt:
+    - Role: フロントエンドエンジニア（Next.js）
+    - Task: Implement the task for spec engineering-knowledge-sharing, first run spec-workflow-guide to get the workflow guide then implement the task: ランキングページのナビゲーションを統合し、ユーザーが簡単にアクセスできるようにする
+    - Restrictions: 既存ナビゲーション設計を尊重、レスポンシブ対応
+    - _Leverage: 既存ヘッダーコンポーネント, ダッシュボードレイアウト
+    - _Requirements: ナビゲーション改善
+    - Success: ランキングページへの導線が整備され、ユーザビリティが向上する
+    - Instructions: tasks.mdの当該行を開始時に`- [ ]`→`- [-]`、完了時に`- [x]`へ更新すること
