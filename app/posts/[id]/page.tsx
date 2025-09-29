@@ -47,9 +47,6 @@ export async function generateMetadata({ params }: PostDetailPageProps): Promise
     ? description.substring(0, 160) + "..." 
     : description;
 
-  const isRssPost = post.metadata?.source === "rss";
-  const postUrl = post.url || `https://tech-reef.vercel.app/posts/${params.id}`;
-  
   return {
     title: `${post.title} | Tech Reef`,
     description: truncatedDescription,
@@ -76,15 +73,6 @@ export async function generateMetadata({ params }: PostDetailPageProps): Promise
       title: post.title,
       description: truncatedDescription,
       images: [`https://tech-reef.vercel.app/api/og/${params.id}`],
-    },
-    alternates: {
-      canonical: `https://tech-reef.vercel.app/posts/${params.id}`,
-    },
-    other: {
-      "article:author": post.author_email || "Tech Reef",
-      "article:published_time": post.created_at,
-      "article:section": isRssPost ? "RSS" : "ユーザー投稿",
-      ...(post.url && { "article:original_url": post.url }),
     },
   };
 }
