@@ -42,7 +42,10 @@ export async function GET(request: NextRequest) {
         metadata,
         created_at,
         updated_at,
-        post_tags(tag:tags(id, name))
+        post_tags(tag:tags(id, name)),
+        comments(count),
+        bookmarks(count),
+        post_likes(count)
       `)
       .or(`title.ilike.%${query}%,content.ilike.%${query}%,summary.ilike.%${query}%`)
       .order("created_at", { ascending: false })

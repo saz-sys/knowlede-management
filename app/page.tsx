@@ -83,6 +83,7 @@ export default function HomePage() {
   const [isSearching, setIsSearching] = useState(false);
   const [bookmarkedPostIds, setBookmarkedPostIds] = useState<Set<string>>(new Set());
   const [likedPostIds, setLikedPostIds] = useState<Set<string>>(new Set());
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [isFilterExpanded, setIsFilterExpanded] = useState(false);
   const [pagination, setPagination] = useState({
     page: 1,
@@ -121,6 +122,18 @@ export default function HomePage() {
     }
   };
 
+  const fetchAvailableTags = async () => {
+    try {
+      const response = await fetch("/api/tags");
+      if (response.ok) {
+        const tags = await response.json();
+        setAvailableTags(tags);
+      }
+    } catch (err) {
+      console.error("Failed to load tags:", err);
+    }
+  };
+
   const loadPosts = async (reset = true) => {
     if (reset) {
       setIsLoading(true);
@@ -144,8 +157,8 @@ export default function HomePage() {
           hasMore: newPagination.hasMore,
           total: newPagination.total
         });
-        // ブックマーク一覧といいね一覧も同時に取得
-        await Promise.all([loadBookmarks(), loadLikes()]);
+        // ブックマーク一覧といいね一覧、タグ一覧も同時に取得
+        await Promise.all([loadBookmarks(), loadLikes(), fetchAvailableTags()]);
         setIsInitialLoad(false);
       } else {
         setPosts(prev => [...prev, ...newPosts]);
@@ -244,7 +257,7 @@ export default function HomePage() {
     }
   }, [source, tag]);
 
-  const availableTags = useMemo(() => deriveTags(posts), [posts]);
+  // availableTagsはAPIから取得するため、useMemoは不要
 
   const displayPosts = useMemo(() => {
     // 検索中は検索結果を表示
