@@ -29,15 +29,15 @@ export default function Header() {
   };
 
   return (
-    <header className="border-b border-gray-200 bg-white shadow-lg">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
+    <header className="border-b border-gray-200 bg-white shadow-lg" style={{ backgroundColor: '#ffffff' }}>
+      <div className="mx-auto flex h-[78px] max-w-6xl items-center justify-between px-4 sm:px-6">
         <div className="flex items-center gap-4">
           <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
             <Image 
               src="/branding/logo.png?v=20250129" 
               alt="Tech Reef" 
               width={200}
-              height={64}
+              height={78}
               style={{ objectFit: 'contain' }}
             />
           </Link>
@@ -96,7 +96,7 @@ export default function Header() {
 
       {/* ハンバーガーメニュー */}
       {session && isMenuOpen && (
-        <div className="border-t border-gray-200 bg-white">
+        <div className="border-t border-gray-200 bg-white" style={{ backgroundColor: '#ffffff' }}>
           <nav className="px-4 py-3 space-y-2">
             <Link
               href="/posts/new"

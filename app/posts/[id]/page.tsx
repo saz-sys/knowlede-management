@@ -59,20 +59,11 @@ export async function generateMetadata({ params }: PostDetailPageProps): Promise
       authors: [post.author_email || "Tech Reef"],
       siteName: "Tech Reef",
       locale: "ja_JP",
-      images: [
-        {
-          url: "/branding/og-image.png",
-          width: 1200,
-          height: 630,
-          alt: post.title,
-        }
-      ],
     },
     twitter: {
       card: "summary_large_image",
       title: post.title,
       description: truncatedDescription,
-      images: ["/branding/og-image.png"],
     },
   };
 }
