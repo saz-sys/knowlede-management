@@ -129,20 +129,22 @@ export default function CommentItem({
             )}
           </div>
 
-          <div className="flex gap-1 ml-2">
-            <button
-              onClick={() => setIsEditing(!isEditing)}
-              className="text-xs text-gray-500 hover:text-gray-700"
-            >
-              編集
-            </button>
-            <button
-              onClick={handleDelete}
-              className="text-xs text-red-500 hover:text-red-700"
-            >
-              削除
-            </button>
-          </div>
+          {user?.id === comment.author_id && (
+            <div className="flex gap-1 ml-2">
+              <button
+                onClick={() => setIsEditing(!isEditing)}
+                className="text-xs text-gray-500 hover:text-gray-700"
+              >
+                編集
+              </button>
+              <button
+                onClick={handleDelete}
+                className="text-xs text-red-500 hover:text-red-700"
+              >
+                削除
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-2 mt-3">
@@ -157,12 +159,13 @@ export default function CommentItem({
                 disabled={isBusy}
                 className={`flex items-center gap-1 px-2 py-1 rounded-full text-sm transition-colors ${
                   hasReacted
-                    ? "bg-blue-100 text-blue-700"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                } ${isBusy ? "opacity-60 cursor-not-allowed" : ""}`}
+                    ? "bg-blue-100 text-blue-700 border border-blue-200"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200"
+                } ${isBusy ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
+                title={`${emoji} スタンプを${hasReacted ? "削除" : "追加"}`}
               >
-                <span>{emoji}</span>
-                {users.length > 0 && <span>{users.length}</span>}
+                <span className="text-base">{emoji}</span>
+                {users.length > 0 && <span className="text-xs font-medium">{users.length}</span>}
               </button>
             );
           })}
