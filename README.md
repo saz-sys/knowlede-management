@@ -2,6 +2,201 @@
 
 エンジニアリング知識共有プラットフォーム - 安全で信頼性の高い開発環境を提供します。
 
+## システム概要
+
+このプラットフォームは、エンジニアが技術的な知識や経験を共有し、チーム全体のスキル向上を促進するためのWebアプリケーションです。投稿、コメント、ブックマーク、いいね機能を通じて、知識の蓄積と共有を効率的に行えます。
+
+## 主要機能
+
+### 📝 投稿管理
+- **記事投稿**: 技術的な知識や経験を記事として投稿
+- **Markdown対応**: リッチテキストでの記事作成
+- **公開/非公開設定**: 記事の公開範囲を制御
+- **編集・削除**: 投稿後の記事管理
+
+### 💬 コメント機能
+- **コメント投稿**: 記事に対するコメントや質問
+- **返信機能**: コメントへの返信でディスカッション
+- **リアクション**: 6種類の絵文字スタンプ（👍、❤️、😂、😮、😢、😡）
+- **編集・削除**: コメントの管理
+
+### 🔖 ブックマーク機能
+- **記事保存**: 有用な記事をブックマーク
+- **マイブックマーク**: 個人のブックマーク一覧
+- **ブックマーク管理**: 追加・削除の簡単操作
+
+### ❤️ いいね機能
+- **記事評価**: 記事へのいいね機能
+- **いいね管理**: いいねした記事の一覧表示
+
+### 📊 ランキング機能
+- **コメント数ランキング**: 議論が活発な記事を発見
+- **ブックマーク数ランキング**: 多くの人が保存した記事を発見
+- **いいね数ランキング**: 多くの人に評価された記事を発見
+- **期間別フィルター**: 今日、今週、今月での絞り込み
+- **ページネーション**: 大量データの効率的な表示
+
+### 🔍 検索機能
+- **記事検索**: タイトルや内容での検索
+- **タグ検索**: タグによる記事の分類・検索
+
+### 👤 ユーザー管理
+- **プロフィール管理**: ユーザー情報の設定
+- **投稿履歴**: 自分の投稿一覧
+- **いいね履歴**: いいねした記事の一覧
+
+### 📡 RSS機能
+- **RSSフィード**: 外部サイトの記事を自動取得
+- **フィード管理**: RSSフィードの追加・削除
+- **自動更新**: 定期的なフィード更新
+
+## システム構成
+
+### フロントエンド
+- **Next.js 14**: React ベースのフルスタックフレームワーク
+- **TypeScript**: 型安全な開発環境
+- **Tailwind CSS**: ユーティリティファーストCSS
+- **Supabase Auth**: 認証・認可システム
+
+### バックエンド
+- **Supabase**: PostgreSQL データベース
+- **Row Level Security (RLS)**: データベースレベルでのセキュリティ
+- **Edge Functions**: サーバーレス関数（RSS取得など）
+
+### データベース設計
+- **posts**: 記事データ
+- **comments**: コメントデータ
+- **bookmarks**: ブックマークデータ
+- **post_likes**: いいねデータ
+- **profiles**: ユーザープロフィール
+- **rss_feeds**: RSSフィード設定
+
+### セキュリティ
+- **Aikido Safe Chain**: マルウェア検出・サプライチェーン保護
+- **認証**: Supabase Auth による安全な認証
+- **RLS**: データベースレベルでのアクセス制御
+- **CORS設定**: 適切なクロスオリジン設定
+
+## 技術スタック
+
+### フロントエンド技術
+- **Next.js 14**: App Router、Server Components
+- **React 18**: クライアントサイドレンダリング
+- **TypeScript**: 静的型チェック
+- **Tailwind CSS**: スタイリング
+- **Supabase Auth Helpers**: 認証状態管理
+
+### バックエンド技術
+- **Supabase**: PostgreSQL データベース
+- **PostgreSQL**: リレーショナルデータベース
+- **Row Level Security**: データベースレベルセキュリティ
+- **Edge Functions**: Deno ベースのサーバーレス関数
+
+### 開発・運用ツール
+- **Docker**: コンテナ化
+- **Aikido Safe Chain**: セキュリティスキャン
+- **GitLab CI/CD**: 継続的インテグレーション
+
+## API設計
+
+### 認証API
+- `POST /api/auth/login` - ログイン
+- `POST /api/auth/logout` - ログアウト
+
+### 投稿API
+- `GET /api/posts` - 投稿一覧取得
+- `POST /api/posts` - 投稿作成
+- `GET /api/posts/[id]` - 投稿詳細取得
+- `PUT /api/posts/[id]` - 投稿更新
+- `DELETE /api/posts/[id]` - 投稿削除
+- `GET /api/posts/search` - 投稿検索
+- `GET /api/posts/my` - 自分の投稿一覧
+
+### いいねAPI
+- `GET /api/posts/[id]/likes` - いいね状態取得
+- `POST /api/posts/[id]/likes` - いいね追加
+- `DELETE /api/posts/[id]/likes` - いいね削除
+- `GET /api/posts/my-likes` - いいねした投稿一覧
+
+### コメントAPI
+- `GET /api/comments` - コメント一覧取得
+- `POST /api/comments` - コメント作成
+- `PUT /api/comments/[id]` - コメント更新
+- `DELETE /api/comments/[id]` - コメント削除
+- `POST /api/comments/[id]/reactions` - リアクション追加
+- `DELETE /api/comments/[id]/reactions` - リアクション削除
+
+### ブックマークAPI
+- `GET /api/bookmarks` - ブックマーク一覧取得
+- `POST /api/bookmarks` - ブックマーク追加
+- `DELETE /api/bookmarks/[id]` - ブックマーク削除
+- `GET /api/bookmarks/my` - 自分のブックマーク一覧
+
+### ランキングAPI
+- `GET /api/rankings/comments` - コメント数ランキング
+- `GET /api/rankings/bookmarks` - ブックマーク数ランキング
+- `GET /api/rankings/likes` - いいね数ランキング
+
+### RSS API
+- `GET /api/rss-feeds` - RSSフィード一覧
+- `POST /api/rss-feeds` - RSSフィード追加
+- `DELETE /api/rss-feeds/[id]` - RSSフィード削除
+- `POST /api/rss/refresh` - RSSフィード更新
+
+## デプロイメント
+
+### 環境変数設定
+```bash
+# Supabase設定
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+
+# アプリケーション設定
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
+
+### 本番環境デプロイ
+```bash
+# 依存関係のインストール
+npm ci
+
+# 本番ビルド
+npm run build
+
+# 本番サーバー起動
+npm start
+```
+
+### Docker デプロイ
+```bash
+# イメージビルド
+docker build -t knowledge-management .
+
+# コンテナ実行
+docker run -p 3000:3000 \
+  -e NEXT_PUBLIC_SUPABASE_URL=your_url \
+  -e NEXT_PUBLIC_SUPABASE_ANON_KEY=your_key \
+  knowledge-management
+```
+
+## 運用・監視
+
+### ログ監視
+- **Supabase Logs**: データベース操作の監視
+- **Edge Function Logs**: サーバーレス関数の実行状況
+- **Application Logs**: アプリケーションエラーの追跡
+
+### パフォーマンス監視
+- **データベースクエリ**: 遅いクエリの特定
+- **API レスポンス時間**: エンドポイント別の性能測定
+- **メモリ使用量**: リソース使用状況の監視
+
+### セキュリティ監視
+- **Aikido Safe Chain**: 依存関係のセキュリティスキャン
+- **認証ログ**: 不正アクセスの検出
+- **データベースアクセス**: RLS ポリシーの監視
+
 ## セキュリティ機能
 
 このプロジェクトは[Aikido Safe Chain](https://github.com/AikidoSec/safe-chain)を統合しており、マルウェアから開発環境を保護します。
