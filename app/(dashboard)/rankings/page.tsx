@@ -12,12 +12,12 @@ export default function RankingsPage() {
             ランキング
           </h1>
           <p className="text-gray-600">
-            人気の記事をランキング形式で確認できます。コメント数やブックマーク数で記事の人気度を把握しましょう。
+            人気の記事をランキング形式で確認できます。コメント数、ブックマーク数、いいね数で記事の人気度を把握しましょう。
           </p>
         </div>
 
         {/* ランキング一覧 */}
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-3">
           {/* コメント数ランキング */}
           <div className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
             <div className="p-6">
@@ -79,6 +79,37 @@ export default function RankingsPage() {
               </Link>
             </div>
           </div>
+
+          {/* いいね数ランキング */}
+          <div className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
+            <div className="p-6">
+              <div className="flex items-center mb-4">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                    <svg className="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="ml-4">
+                  <h2 className="text-xl font-semibold text-gray-900">いいね数ランキング</h2>
+                  <p className="text-sm text-gray-600">いいね数が多い記事</p>
+                </div>
+              </div>
+              <p className="text-gray-600 mb-6">
+                記事に付けられたいいね数が多い順にランキング表示します。多くの人に評価された記事を発見できます。
+              </p>
+              <Link
+                href="/rankings/likes"
+                className="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 transition-colors"
+              >
+                いいね数ランキングを見る
+                <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+            </div>
+          </div>
         </div>
 
         {/* 説明セクション */}
@@ -86,7 +117,7 @@ export default function RankingsPage() {
           <h3 className="text-lg font-medium text-gray-900 mb-4">
             ランキング機能について
           </h3>
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-6 md:grid-cols-3">
             <div>
               <h4 className="text-sm font-medium text-gray-900 mb-2">コメント数ランキング</h4>
               <ul className="text-sm text-gray-600 space-y-1">
@@ -101,6 +132,15 @@ export default function RankingsPage() {
               <ul className="text-sm text-gray-600 space-y-1">
                 <li>• 記事のブックマーク数でランキング</li>
                 <li>• 多くの人が保存した記事を発見</li>
+                <li>• 期間別フィルター（今日、今週、今月）</li>
+                <li>• ページネーション対応</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-sm font-medium text-gray-900 mb-2">いいね数ランキング</h4>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• 記事のいいね数でランキング</li>
+                <li>• 多くの人に評価された記事を発見</li>
                 <li>• 期間別フィルター（今日、今週、今月）</li>
                 <li>• ページネーション対応</li>
               </ul>
