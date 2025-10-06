@@ -30,6 +30,7 @@ export async function GET(request: NextRequest) {
         url,
         author_id,
         created_at,
+        metadata,
         profiles!posts_author_id_fkey (
           name,
           email
@@ -45,8 +46,7 @@ export async function GET(request: NextRequest) {
 
     // ユーザー投稿のみをフィルタリング（RSS投稿を除外）
     const userPosts = posts?.filter(post => 
-      post.profiles && 
-      post.profiles.email !== 'rss@autogen'
+      post.metadata?.source !== 'rss'
     ) || [];
 
     return NextResponse.json({

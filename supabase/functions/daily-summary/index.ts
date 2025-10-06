@@ -57,6 +57,7 @@ serve(async (req) => {
         url,
         author_id,
         created_at,
+        metadata,
         profiles!posts_author_id_fkey (
           name,
           email
@@ -71,8 +72,7 @@ serve(async (req) => {
 
     // ユーザー投稿のみをフィルタリング（RSS投稿を除外）
     const userPosts = posts?.filter(post => 
-      post.profiles && 
-      post.profiles.email !== 'rss@autogen'
+      post.metadata?.source !== 'rss'
     ) || [];
 
     console.log(`Found ${userPosts.length} user posts in the last 24 hours`);

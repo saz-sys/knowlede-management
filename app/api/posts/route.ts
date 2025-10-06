@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
         metadata: { source: "manual" }
       })
       .select(
-        "id, author_id, title, url, content, summary, notified_channels, created_at, updated_at"
+        "id, author_id, title, url, content, summary, notified_channels, metadata, created_at, updated_at"
       )
       .single();
 
