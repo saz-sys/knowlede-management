@@ -2,6 +2,7 @@ import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import type { CreatePostRequest } from "@/lib/types/posts";
+import { sendPostNotification } from "@/lib/slack/notification";
 
 export async function POST(request: NextRequest) {
   try {
@@ -96,6 +97,30 @@ export async function POST(request: NextRequest) {
         if (postTagsError) {
           console.error("Post tags upsert failed", postTagsError);
         }
+      }
+    }
+
+    // ユーザー投稿の場合のみSlack通知を送信（RSS投稿は除外）
+    if (post.metadata?.source !== "rss") {
+      try {
+        // ユーザー情報を取得
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("name, email")
+          .eq("id", session.user.id)
+          .single();
+
+        await sendPostNotification({
+          postId: post.id,
+          title: post.title,
+          url: post.url,
+          authorName: profile?.name || session.user.user_metadata?.name || "Unknown",
+          authorEmail: session.user.email || "",
+          content: post.content || undefined
+        });
+      } catch (notificationError) {
+        // Slack通知の失敗は投稿作成を阻害しない
+        console.error("Failed to send post notification:", notificationError);
       }
     }
 
