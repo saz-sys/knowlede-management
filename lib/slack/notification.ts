@@ -13,6 +13,18 @@ interface CommentNotificationData {
   postAuthorName?: string;
 }
 
+interface DailyPost {
+  id: string;
+  title: string;
+  url: string;
+  author_id: string;
+  created_at: string;
+  profiles: {
+    name: string;
+    email: string;
+  };
+}
+
 export async function sendCommentNotification(data: CommentNotificationData): Promise<boolean> {
   const botToken = process.env.SLACK_BOT_TOKEN;
   const channel = process.env.SLACK_NOTIFICATION_CHANNEL
@@ -105,6 +117,76 @@ export async function sendCommentNotification(data: CommentNotificationData): Pr
     return true;
   } catch (error) {
     console.error("Error sending Slack notification:", error);
+    return false;
+  }
+}
+
+export async function sendDailySummaryNotification(posts: DailyPost[]): Promise<boolean> {
+  const botToken = process.env.SLACK_BOT_TOKEN;
+  const channel = process.env.SLACK_NOTIFICATION_CHANNEL;
+  
+  if (!botToken) {
+    console.error("SLACK_BOT_TOKEN is not configured");
+    return false;
+  }
+
+  if (!channel) {
+    console.error("SLACK_NOTIFICATION_CHANNEL is not configured");
+    return false;
+  }
+
+  if (posts.length === 0) {
+    console.log("No posts to notify about");
+    return true;
+  }
+
+  const today = new Date().toLocaleDateString('ja-JP', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    weekday: 'long'
+  });
+
+  // シンプルなメッセージ形式
+  const postList = posts.map(post => 
+    `• [${post.title}](${post.url})`
+  ).join('\n');
+
+  const message: SlackMessage = {
+    channel: channel as string,
+    text: `📰 新規投稿 ${posts.length}件\n\n${postList}`,
+    blocks: [
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `📰 *新規投稿 ${posts.length}件*\n\n${postList}`
+        }
+      }
+    ]
+  };
+
+  try {
+    const response = await fetch("https://slack.com/api/chat.postMessage", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${botToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(message),
+    });
+
+    const result = await response.json();
+    
+    if (!result.ok) {
+      console.error("Failed to send daily summary notification:", result.error);
+      return false;
+    }
+
+    console.log("Daily summary notification sent successfully");
+    return true;
+  } catch (error) {
+    console.error("Error sending daily summary notification:", error);
     return false;
   }
 }
