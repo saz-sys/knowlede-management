@@ -1,0 +1,43 @@
+# Makefile for Windows build
+
+.PHONY: clean build run-app install-deps
+
+# 仮想環境の確認
+check-venv:
+	@if [ ! -d ".venv" ]; then \
+		echo "Error: Virtual environment not found. Please create with 'python -m venv .venv'"; \
+		exit 1; \
+	fi
+
+# 依存関係のインストール
+install-deps: check-venv
+	source .venv/bin/activate && pip install -r requirements.txt
+	source .venv/bin/activate && pip install pyinstaller
+
+# ビルド前のクリーンアップ
+clean:
+	rm -rf build dist __pycache__ */__pycache__
+
+# Windows用アプリのビルド
+build: check-venv
+	@if [ ! -f "assets/icons/framesnap.ico" ]; then \
+		echo "Warning: Windows icon file not found at assets/icons/framesnap.ico"; \
+	fi
+	source .venv/bin/activate && pyinstaller pyinstaller_windows.spec
+
+# アプリの実行（開発環境）
+run-dev: check-venv
+	source .venv/bin/activate && python -m src.tk_main
+
+# ビルドされたアプリの実行
+run-app:
+	dist/FrameSnap/FrameSnap.exe
+
+# ヘルプ
+help:
+	@echo "Available targets:"
+	@echo "  clean       - Clean build artifacts"
+	@echo "  build       - Build Windows executable"
+	@echo "  run-dev     - Run app in development mode"
+	@echo "  run-app     - Run built Windows executable"
+	@echo "  install-deps - Install dependencies"
