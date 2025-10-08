@@ -156,9 +156,12 @@ export async function sendDailySummaryNotification(posts: DailyPost[]): Promise<
     weekday: 'long'
   });
 
+  // 投稿詳細ページのURLを生成
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  
   // シンプルなメッセージ形式
   const postList = posts.map(post => 
-    `• [${post.title}](${post.url})`
+    `• [${post.title}](${baseUrl}/posts/${post.id})`
   ).join('\n');
 
   const message: SlackMessage = {
@@ -214,6 +217,10 @@ export async function sendPostNotification(data: PostNotificationData): Promise<
     return false;
   }
 
+  // 投稿詳細ページのURLを生成
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL || 'http://localhost:3000';
+  const postDetailUrl = `${baseUrl}/posts/${data.postId}`;
+
   const message: SlackMessage = {
     channel: channel as string,
     text: `📝 新しい投稿: ${data.title}`,
@@ -222,7 +229,7 @@ export async function sendPostNotification(data: PostNotificationData): Promise<
         type: "section",
         text: {
           type: "mrkdwn",
-          text: `📝 *新しい投稿が作成されました*\n\n*タイトル:* ${data.title}\n*投稿者:* ${data.authorName || data.authorEmail}\n*URL:* ${data.url}`
+          text: `📝 *新しい投稿が作成されました*\n\n*タイトル:* ${data.title}\n*投稿者:* ${data.authorName || data.authorEmail}\n*元記事URL:* ${data.url}`
         }
       },
       ...(data.content ? [{
@@ -241,7 +248,7 @@ export async function sendPostNotification(data: PostNotificationData): Promise<
               type: "plain_text",
               text: "記事を確認する"
             },
-            url: data.url,
+            url: postDetailUrl,
             style: "primary"
           }
         ]

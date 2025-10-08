@@ -93,9 +93,12 @@ serve(async (req) => {
       weekday: 'long'
     });
 
+    // 投稿詳細ページのURLを生成
+    const baseUrl = Deno.env.get("NEXT_PUBLIC_SITE_URL") || Deno.env.get("VERCEL_URL") || 'http://localhost:3000';
+    
     // シンプルなメッセージ形式
     const postList = userPosts.map(post => 
-      `• [${post.title}](${post.url})`
+      `• [${post.title}](${baseUrl}/posts/${post.id})`
     ).join('\n');
 
     const message: SlackMessage = {
