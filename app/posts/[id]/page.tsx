@@ -6,6 +6,7 @@ import CommentThread from "@/components/comments/CommentThread";
 import LikeButton from "@/components/posts/LikeButton";
 import BookmarkButton from "@/components/bookmarks/BookmarkButton";
 import ShareButton from "@/components/ShareButton";
+import DeleteButton from "@/components/posts/DeleteButton";
 import { Comment } from "@/lib/types/comments";
 
 interface PostDetailPageProps {
@@ -84,6 +85,7 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
     .from("posts")
     .select(`
       id,
+      author_id,
       title,
       url,
       content,
@@ -215,17 +217,25 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
           </div>
         )}
 
-        <div className="mb-4 flex items-center justify-end gap-4">
-          <LikeButton
+        <div className="mb-4 flex items-center justify-between">
+          <DeleteButton
             postId={post.id}
-            initialLikeCount={post.post_likes?.[0]?.count || 0}
+            postTitle={post.title}
+            authorId={post.author_id}
+            currentUserId={session.user.id}
           />
-          <BookmarkButton
-            postId={post.id}
-            isBookmarked={!!userBookmark}
-            skipInitialCheck={true}
-          />
-          <ShareButton postId={post.id} postTitle={post.title} />
+          <div className="flex items-center gap-4">
+            <LikeButton
+              postId={post.id}
+              initialLikeCount={post.post_likes?.[0]?.count || 0}
+            />
+            <BookmarkButton
+              postId={post.id}
+              isBookmarked={!!userBookmark}
+              skipInitialCheck={true}
+            />
+            <ShareButton postId={post.id} postTitle={post.title} />
+          </div>
         </div>
 
         {summaryText && (
