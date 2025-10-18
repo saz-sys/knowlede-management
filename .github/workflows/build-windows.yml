@@ -1,0 +1,62 @@
+name: Build Windows App
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:  # 手動実行可能
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+        
+    - name: Build Windows executable
+      run: |
+        pyinstaller pyinstaller_windows.spec
+        
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: FrameSnap-Windows
+        path: dist/FrameSnap/
+        
+    - name: Create release
+      if: github.ref == 'refs/heads/main'
+      uses: softprops/action-gh-release@v1
+      with:
+        files: dist/FrameSnap/*
+        tag_name: v${{ github.run_number }}
+        name: FrameSnap Windows v${{ github.run_number }}
+        body: |
+          Windows用FrameSnapアプリケーション
+          
+          ## 使用方法
+          1. FrameSnap.exe をダブルクリック
+          2. 動画ファイルを選択
+          3. サムネイル抽出開始
+          
+          ## 注意事項
+          - Windows 10/11 対応
+          - 初回起動時は時間がかかる場合があります
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+
+
