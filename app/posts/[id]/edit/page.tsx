@@ -28,7 +28,6 @@ export default async function EditPostPage({ params }: EditPostPageProps) {
       title,
       url,
       content,
-      summary,
       author_id,
       post_tags(
         tag:tags(name)
@@ -65,7 +64,6 @@ export default async function EditPostPage({ params }: EditPostPageProps) {
             title: post.title,
             url: post.url,
             content: post.content || "",
-            summary: post.summary || "",
             tags: tags
           }}
         />

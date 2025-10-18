@@ -11,7 +11,6 @@ interface PostEditorProps {
 const initialState = {
   title: "",
   url: "",
-  summary: "",
   content: "",
   tags: "",
   notifyChannels: ""
@@ -49,7 +48,6 @@ export default function PostEditor({ onSuccess }: PostEditorProps) {
         body: JSON.stringify({
           title: form.title.trim(),
           url: form.url.trim(),
-          summary: form.summary.trim() || undefined,
           content: form.content.trim() || undefined,
           tags: form.tags
             .split(",")
@@ -137,20 +135,6 @@ export default function PostEditor({ onSuccess }: PostEditorProps) {
         />
       </div>
 
-      <div className="space-y-2">
-        <label htmlFor="summary" className="block text-sm font-medium text-gray-700">
-          要約
-        </label>
-        <textarea
-          id="summary"
-          name="summary"
-          value={form.summary}
-          onChange={handleChange}
-          placeholder="記事の要約やポイント"
-          rows={3}
-          className="w-full rounded-md border border-cyan-300 px-3 py-2 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200 bg-white/80"
-        />
-      </div>
 
       <div className="space-y-2">
         <label htmlFor="content" className="block text-sm font-medium text-gray-700">

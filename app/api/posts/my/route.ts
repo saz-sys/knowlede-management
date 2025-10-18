@@ -23,7 +23,6 @@ export async function GET(request: NextRequest) {
         id,
         title,
         url,
-        summary,
         created_at,
         updated_at,
         post_tags(

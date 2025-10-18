@@ -87,7 +87,6 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
       title,
       url,
       content,
-      summary,
       metadata,
       created_at,
       updated_at,

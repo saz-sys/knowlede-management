@@ -28,7 +28,6 @@ export async function GET(request: NextRequest) {
           id,
           title,
           url,
-          summary,
           created_at,
           metadata
         )
@@ -105,7 +104,6 @@ export async function POST(request: NextRequest) {
           id,
           title,
           url,
-          summary
         )
       `)
       .single();

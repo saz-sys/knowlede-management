@@ -10,7 +10,6 @@ interface PostEditFormProps {
     title: string;
     url: string;
     content: string;
-    summary: string;
     tags: string;
   };
 }
@@ -47,7 +46,6 @@ export default function PostEditForm({ postId, initialData }: PostEditFormProps)
         body: JSON.stringify({
           title: form.title.trim(),
           url: form.url.trim(),
-          summary: form.summary.trim() || undefined,
           content: form.content.trim() || undefined,
           tags: form.tags
             .split(",")
@@ -124,20 +122,6 @@ export default function PostEditForm({ postId, initialData }: PostEditFormProps)
           />
         </div>
 
-        <div className="space-y-2">
-          <label htmlFor="summary" className="block text-sm font-medium text-gray-700">
-            要約
-          </label>
-          <textarea
-            id="summary"
-            name="summary"
-            value={form.summary}
-            onChange={handleChange}
-            placeholder="記事の要約やポイント"
-            rows={3}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring"
-          />
-        </div>
 
         <div className="space-y-2">
           <label htmlFor="content" className="block text-sm font-medium text-gray-700">

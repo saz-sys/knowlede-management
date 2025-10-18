@@ -211,8 +211,7 @@ async function processFeed(supabase: SupabaseClient, feed: FeedConfig): Promise<
         author_email: "rss@autogen",
         title: item.title as string,
         url: item.link as string,
-        summary: item.contentSnippet ?? null,
-        content: null,
+        content: item.contentSnippet ?? null,
         notified_channels: [],
         metadata: {
           source: "rss",

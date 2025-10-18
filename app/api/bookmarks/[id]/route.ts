@@ -54,7 +54,6 @@ export async function PATCH(
           id,
           title,
           url,
-          summary
         )
       `)
       .single();
