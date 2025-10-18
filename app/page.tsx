@@ -425,9 +425,7 @@ export default function HomePage() {
                     {post.title}
                   </h3>
 
-                  {post.summary ? (
-                    <p className="mt-1 text-sm text-gray-600 line-clamp-2">{createExcerpt(post.summary, 120)}</p>
-                  ) : post.content ? (
+                  {post.content ? (
                     <p className="mt-1 text-sm text-gray-600 line-clamp-2">{createExcerpt(post.content, 120)}</p>
                   ) : null}
 

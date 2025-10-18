@@ -5,7 +5,6 @@ export interface Post {
   title: string;
   url: string;
   content?: string;
-  summary?: string;
   notified_channels?: string[];
   metadata?: Record<string, unknown> | null;
   created_at: string;
@@ -21,7 +20,6 @@ export interface CreatePostRequest {
   title: string;
   url: string;
   content?: string;
-  summary?: string;
   notified_channels?: string[];
   tags?: string[];
 }

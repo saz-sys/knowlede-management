@@ -112,7 +112,7 @@ export async function PUT(
 
     const postId = params.id;
     const body = await request.json();
-    const { title, url, content, summary, tags = [] } = body;
+    const { title, url, content, tags = [] } = body;
 
     if (!title?.trim() || !url?.trim()) {
       return NextResponse.json({ error: "Title and url are required" }, { status: 400 });
@@ -168,11 +168,10 @@ export async function PUT(
         title: title.trim(),
         url: url.trim(),
         content: content?.trim() ?? null,
-        summary: summary?.trim() ?? null,
         updated_at: new Date().toISOString()
       })
       .eq("id", postId)
-      .select("id, title, url, content, summary, updated_at")
+      .select("id, title, url, content, updated_at")
       .single();
 
     if (updateError || !updatedPost) {

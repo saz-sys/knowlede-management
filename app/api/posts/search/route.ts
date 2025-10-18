@@ -37,7 +37,6 @@ export async function GET(request: NextRequest) {
         title,
         url,
         content,
-        summary,
         notified_channels,
         metadata,
         created_at,
@@ -47,7 +46,7 @@ export async function GET(request: NextRequest) {
         bookmarks(count),
         post_likes(count)
       `)
-      .or(`title.ilike.%${query}%,content.ilike.%${query}%,summary.ilike.%${query}%`)
+      .or(`title.ilike.%${query}%,content.ilike.%${query}%`)
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
 
@@ -73,7 +72,7 @@ export async function GET(request: NextRequest) {
     let countQuery = supabase
       .from("posts")
       .select("id", { count: "exact", head: true })
-      .or(`title.ilike.%${query}%,content.ilike.%${query}%,summary.ilike.%${query}%`);
+      .or(`title.ilike.%${query}%,content.ilike.%${query}%`);
 
     if (tag) {
       countQuery = countQuery.contains("post_tags", [{ tag: { name: tag } }]);

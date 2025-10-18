@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: PostDetailPageProps): Promise
   
   const { data: post } = await supabase
     .from("posts")
-    .select("title, summary, author_email, created_at, url, metadata")
+    .select("title, author_email, created_at, url, metadata")
     .eq("id", params.id)
     .single();
 
@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: PostDetailPageProps): Promise
     };
   }
 
-  const description = post.summary || "Tech Reefで共有された記事です。";
+  const description = "Tech Reefで共有された記事です。";
   const truncatedDescription = description.length > 160 
     ? description.substring(0, 160) + "..." 
     : description;
@@ -182,11 +182,7 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
   };
 
   const isRssPost = post.metadata?.source === "rss";
-  const summaryText = !post.summary
-    ? null
-    : isRssPost
-    ? createExcerpt(post.summary)
-    : post.summary;
+  const summaryText = null;
   const contentText = !post.content
     ? null
     : isRssPost
