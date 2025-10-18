@@ -212,7 +212,6 @@ async function processFeed(supabase: SupabaseClient, feed: FeedConfig): Promise<
         title: item.title as string,
         url: item.link as string,
         content: item.contentSnippet ?? null,
-        notified_channels: [],
         metadata: {
           source: "rss",
           feed_id: feed.id,

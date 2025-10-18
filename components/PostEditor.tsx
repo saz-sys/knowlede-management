@@ -12,8 +12,7 @@ const initialState = {
   title: "",
   url: "",
   content: "",
-  tags: "",
-  notifyChannels: ""
+  tags: ""
 };
 
 export default function PostEditor({ onSuccess }: PostEditorProps) {
@@ -53,10 +52,6 @@ export default function PostEditor({ onSuccess }: PostEditorProps) {
             .split(",")
             .map((tag) => tag.trim())
             .filter((tag) => tag.length > 0),
-          notified_channels: form.notifyChannels
-            .split(",")
-            .map((channel) => channel.trim())
-            .filter((channel) => channel.length > 0)
         })
       });
 
@@ -165,19 +160,6 @@ export default function PostEditor({ onSuccess }: PostEditorProps) {
         />
       </div>
 
-      <div className="space-y-2">
-        <label htmlFor="notifyChannels" className="block text-sm font-medium text-gray-700">
-          Slack通知チャンネル（カンマ区切り・任意）
-        </label>
-        <input
-          id="notifyChannels"
-          name="notifyChannels"
-          value={form.notifyChannels}
-          onChange={handleChange}
-          placeholder="#engineering, #pde-knowledge"
-          className="w-full rounded-md border border-cyan-300 px-3 py-2 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200 bg-white/80"
-        />
-      </div>
 
       {errorMessage && (
         <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">

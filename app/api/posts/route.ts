@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body: CreatePostRequest = await request.json();
-    const { title, url, content, tags = [], notified_channels = [] } = body;
+    const { title, url, content, tags = [] } = body;
 
     if (!title?.trim() || !url?.trim()) {
       return NextResponse.json({ error: "Title and url are required" }, { status: 400 });
@@ -60,11 +60,10 @@ export async function POST(request: NextRequest) {
         title: title.trim(),
         url: url.trim(),
         content: content?.trim() ?? null,
-        notified_channels,
         metadata: { source: "manual" }
       })
       .select(
-        "id, author_id, title, url, content, notified_channels, metadata, created_at, updated_at"
+        "id, author_id, title, url, content, metadata, created_at, updated_at"
       )
       .single();
 

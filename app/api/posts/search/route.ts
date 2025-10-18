@@ -37,7 +37,6 @@ export async function GET(request: NextRequest) {
         title,
         url,
         content,
-        notified_channels,
         metadata,
         created_at,
         updated_at,
