@@ -14,7 +14,14 @@ export default function AuthCallback() {
       const supabase = createClientComponentClient();
       
       try {
+        // デバッグ用ログ
+        console.log("[AuthCallback] Starting authentication callback");
+        console.log("[AuthCallback] Current URL:", window.location.href);
+        
+        // OAuth認証の場合は、URLハッシュから認証情報を処理
         const { data, error } = await supabase.auth.getSession();
+        
+        console.log("[AuthCallback] Session data:", { data, error });
         
         if (error) {
           console.error("Auth callback error:", error);
@@ -23,9 +30,32 @@ export default function AuthCallback() {
         }
 
         if (data.session) {
-          // ログイン成功
-          router.push(redirectTo);
+          console.log("[AuthCallback] Session found, checking user info");
+          
+          // セッションが存在する場合、ユーザー情報も確認
+          const { data: { user }, error: userError } = await supabase.auth.getUser();
+          
+          console.log("[AuthCallback] User data:", { user, userError });
+          
+          if (userError) {
+            console.error("User fetch error:", userError);
+            router.push("/login?error=auth_failed");
+            return;
+          }
+
+          if (user) {
+            console.log("[AuthCallback] Login successful, redirecting to:", redirectTo);
+            // ログイン成功 - 少し待ってからリダイレクト
+            setTimeout(() => {
+              router.push(redirectTo);
+            }, 100);
+          } else {
+            console.log("[AuthCallback] No user found");
+            // ユーザー情報が取得できない
+            router.push("/login?error=no_session");
+          }
         } else {
+          console.log("[AuthCallback] No session found");
           // セッションが見つからない
           router.push("/login?error=no_session");
         }
@@ -35,7 +65,9 @@ export default function AuthCallback() {
       }
     };
 
-    handleAuthCallback();
+    // 少し遅延させてから認証処理を実行
+    const timer = setTimeout(handleAuthCallback, 100);
+    return () => clearTimeout(timer);
   }, [router, redirectTo]);
 
   return (

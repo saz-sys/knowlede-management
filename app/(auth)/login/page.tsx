@@ -27,12 +27,27 @@ export default function LoginPage() {
   useEffect(() => {
     const checkSession = async () => {
       const supabase = createClientComponentClient();
+      
+      // セッションとユーザー情報の両方を確認
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (session && user) {
         router.push(redirectTo);
       }
     };
+    
+    // 認証状態の変更を監視
+    const supabase = createClientComponentClient();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        router.push(redirectTo);
+      }
+    });
+    
     checkSession();
+    
+    return () => subscription.unsubscribe();
   }, [router, redirectTo]);
 
   const error = searchParams.get("error");
