@@ -6,7 +6,6 @@ create table if not exists public.posts (
   url text not null,
   content text,
   summary text,
-  notified_channels jsonb default '[]'::jsonb,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );

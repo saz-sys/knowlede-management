@@ -28,33 +28,14 @@ interface FeedDownload {
 }
 
 const REQUEST_TIMEOUT_MS = 10000;
-const MAX_ITEMS_PER_FEED = 10;
 const MAX_FEEDS_PER_RUN = 10;
+const MAX_ITEMS_PER_FEED = 50;
 
 function createSupabaseClient() {
-  const url = Deno.env.get("SUPABASE_URL");
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-
-  if (!url || !serviceKey) {
-    throw new Error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
-  }
-
-  return createClient(url, serviceKey, {
-    auth: {
-      persistSession: false
-    }
-  });
-}
-
-async function fetchWithTimeout(url: string, init: RequestInit = {}, timeout = REQUEST_TIMEOUT_MS) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeout);
-
-  try {
-    return await fetch(url, { ...init, signal: controller.signal });
-  } finally {
-    clearTimeout(timer);
-  }
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  
+  return createClient(supabaseUrl, supabaseServiceKey);
 }
 
 const parser = new Parser();
@@ -98,8 +79,7 @@ async function fetchFeeds(supabase: SupabaseClient, targetFeedId: string | null)
 
 async function downloadFeed(feed: FeedConfig): Promise<FeedDownload> {
   const headers: Record<string, string> = {
-    "User-Agent": "PdEKnowledgeBot/1.0 (+https://example.com/bot)",
-    Accept: "application/rss+xml, application/xml;q=0.9, */*;q=0.8"
+    "User-Agent": "PdEKnowledgeBot/1.0 (+https://example.com/bot)"
   };
 
   if (feed.last_etag) {
@@ -110,29 +90,32 @@ async function downloadFeed(feed: FeedConfig): Promise<FeedDownload> {
     headers["If-Modified-Since"] = feed.last_modified;
   }
 
-  const response = await fetchWithTimeout(feed.url, { headers });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
-  if (response.status === 304) {
+  try {
+    const response = await fetch(feed.url, {
+      method: "GET",
+      headers,
+      signal: controller.signal
+    });
+
+    clearTimeout(timeoutId);
+
+    const xml = response.status === 200 ? await response.text() : null;
+    const etag = response.headers.get("etag");
+    const lastModified = response.headers.get("last-modified");
+
     return {
-      xml: null,
-      etag: feed.last_etag,
-      lastModified: feed.last_modified,
-      status: 304
+      xml,
+      etag,
+      lastModified,
+      status: response.status
     };
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
   }
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch ${feed.url}: ${response.status} ${response.statusText}`);
-  }
-
-  const xml = await response.text();
-
-  return {
-    xml,
-    etag: response.headers.get("etag"),
-    lastModified: response.headers.get("last-modified"),
-    status: response.status
-  };
 }
 
 async function updateFeedHeaders(
@@ -247,53 +230,61 @@ async function processFeed(supabase: SupabaseClient, feed: FeedConfig): Promise<
         tagsToAdd.push(...feed.tags);
       }
       
-      // 重複を除去
-      const uniqueTags = [...new Set(tagsToAdd)];
-      
-      if (uniqueTags.length > 0) {
-        // 各タグが存在するかチェックし、存在しない場合は作成
-        for (const tagName of uniqueTags) {
+      if (tagsToAdd.length > 0) {
+        // タグを取得または作成
+        const tagPromises = tagsToAdd.map(async (tagName) => {
           const { data: existingTag } = await supabase
             .from("tags")
             .select("id")
             .eq("name", tagName)
-            .maybeSingle();
+            .single();
           
-          if (!existingTag) {
-            const { data: newTag } = await supabase
-              .from("tags")
-              .insert({ name: tagName })
-              .select("id")
-              .single();
-            
-            if (newTag) {
-              // 新しく作成したタグをpostsに関連付け
-              await supabase
-                .from("post_tags")
-                .insert(
-                  postIds.map(postId => ({
-                    post_id: postId,
-                    tag_id: newTag.id
-                  }))
-                );
+          if (existingTag) {
+            return existingTag.id;
+          }
+          
+          const { data: newTag, error: tagError } = await supabase
+            .from("tags")
+            .insert({ name: tagName })
+            .select("id")
+            .single();
+          
+          if (tagError) {
+            console.error(`Failed to create tag ${tagName}:`, tagError);
+            return null;
+          }
+          
+          return newTag.id;
+        });
+        
+        const tagIds = (await Promise.all(tagPromises)).filter(Boolean);
+        
+        // 投稿とタグの関連を作成
+        if (tagIds.length > 0) {
+          const postTagRelations = [];
+          for (const postId of postIds) {
+            for (const tagId of tagIds) {
+              postTagRelations.push({
+                post_id: postId,
+                tag_id: tagId
+              });
             }
-          } else {
-            // 既存のタグをpostsに関連付け
-            await supabase
+          }
+          
+          if (postTagRelations.length > 0) {
+            const { error: relationError } = await supabase
               .from("post_tags")
-              .insert(
-                postIds.map(postId => ({
-                  post_id: postId,
-                  tag_id: existingTag.id
-                }))
-              );
+              .insert(postTagRelations);
+            
+            if (relationError) {
+              console.error("Failed to create post-tag relations:", relationError);
+            }
           }
         }
       }
+      
+      result.inserted = inserted.length;
     }
-
-    result.inserted = inserted?.length ?? 0;
-    result.skipped = items.length - newItems.length;
 
     await updateFeedHeaders(supabase, feed.id, download.etag, download.lastModified);
 
@@ -305,7 +296,11 @@ async function processFeed(supabase: SupabaseClient, feed: FeedConfig): Promise<
 
     return result;
   } catch (error) {
-    console.error("[rss-fetch] Failed to process feed", { id: feed.id, error });
+    console.error("[rss-fetch] Failed to process feed", {
+      id: feed.id,
+      error: error
+    });
+
     result.errors += 1;
     result.status = 500;
     return result;
@@ -379,7 +374,7 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error("[rss-fetch] Unexpected error", error);
     return new Response(
-      JSON.stringify({ ok: false, error: "Unexpected error", details: String(error) }),
+      JSON.stringify({ ok: false, error: error.message }),
       {
         status: 500,
         headers: { "Content-Type": "application/json" }
