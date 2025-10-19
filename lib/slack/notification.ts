@@ -227,10 +227,10 @@ export async function sendPostNotification(data: PostNotificationData): Promise<
     blocks: [
       {
         type: "section",
-        text: {
-          type: "mrkdwn",
-          text: `📝 *新しい投稿が作成されました*\n\n*タイトル:* ${data.title}\n*投稿者:* ${data.authorName || data.authorEmail}\n*元記事URL:* ${data.url}`
-        }
+          text: {
+            type: "mrkdwn",
+            text: `📝 *新しい投稿が作成されました*\n\n*タイトル:* ${data.title}\n*投稿者:* ${data.authorName || data.authorEmail}`
+          }
       },
       ...(data.content ? [{
         type: "section",
