@@ -7,6 +7,8 @@ import type { Post } from "@/lib/types/posts";
 import BookmarkButton from "@/components/bookmarks/BookmarkButton";
 import LikeButton from "@/components/posts/LikeButton";
 import PostSearch from "@/components/posts/PostSearch";
+import PostEditor from "@/components/PostEditor";
+import RankingSidebar from "@/components/rankings/RankingSidebar";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import { Metadata } from "next";
 
@@ -286,7 +288,23 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen">
-      <main className="mx-auto max-w-4xl px-4 py-8 space-y-6">
+      <main className="mx-auto max-w-7xl px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* 左サイドバー - 新規投稿 */}
+          <aside className="lg:col-span-3">
+            <div className="sticky top-8">
+              <div className="ocean-card p-4">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">新規投稿</h2>
+                <PostEditor onSuccess={(postId) => {
+                  // 投稿成功時にページをリロード
+                  window.location.reload();
+                }} />
+              </div>
+            </div>
+          </aside>
+
+          {/* メインコンテンツ */}
+          <div className="lg:col-span-6 space-y-6">
         <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
           <div>
             <h1 className="text-3xl font-bold ocean-text">🌊 Tech Reef</h1>
@@ -299,12 +317,6 @@ export default function HomePage() {
             >
               RSSを更新
             </button>
-            <Link
-              href="/posts/new"
-              className="coral-button"
-            >
-              新規投稿
-            </Link>
           </div>
         </div>
 
@@ -512,6 +524,15 @@ export default function HomePage() {
             </div>
           </div>
         )}
+          </div>
+
+          {/* 右サイドバー - ランキング */}
+          <aside className="lg:col-span-3">
+            <div className="sticky top-8 space-y-6">
+              <RankingSidebar />
+            </div>
+          </aside>
+        </div>
       </main>
     </div>
   );
