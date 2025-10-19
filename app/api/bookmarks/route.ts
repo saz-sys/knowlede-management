@@ -103,13 +103,19 @@ export async function POST(request: NextRequest) {
         posts (
           id,
           title,
-          url,
+          url
         )
       `)
       .single();
 
     if (insertError) {
       console.error("Bookmark creation error:", insertError);
+      
+      // 重複エラーの場合
+      if (insertError.code === '23505') {
+        return NextResponse.json({ error: "この投稿は既にブックマークされています" }, { status: 409 });
+      }
+      
       return NextResponse.json({ error: "Failed to create bookmark" }, { status: 500 });
     }
 

@@ -74,7 +74,9 @@ export default function BookmarkButton({
           setBookmarked(false);
           onToggle?.(false);
         } else {
-          throw new Error("ブックマークの解除に失敗しました");
+          const errorData = await response.json().catch(() => null);
+          const errorMessage = errorData?.error || "ブックマークの解除に失敗しました";
+          throw new Error(errorMessage);
         }
       } else {
         // ブックマーク登録
@@ -90,7 +92,9 @@ export default function BookmarkButton({
           setBookmarked(true);
           onToggle?.(true);
         } else {
-          throw new Error("ブックマークの登録に失敗しました");
+          const errorData = await response.json().catch(() => null);
+          const errorMessage = errorData?.error || "ブックマークの登録に失敗しました";
+          throw new Error(errorMessage);
         }
       }
     } catch (error) {
