@@ -106,6 +106,30 @@ export async function POST(request: NextRequest) {
         const authorName = commentAuthor?.name || commentAuthor?.email || "不明なユーザー";
         const postUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/posts/${post_id}`;
 
+        // 返信コメントの場合、元のコメント投稿者の情報を取得
+        let parentCommentAuthor = null;
+        let parentCommentAuthorEmail = null;
+        
+        if (parent_id) {
+          const { data: parentComment, error: parentCommentError } = await supabase
+            .from("comments")
+            .select("author_id")
+            .eq("id", parent_id)
+            .single();
+
+          if (!parentCommentError && parentComment) {
+            const { data: parentAuthor, error: parentAuthorError } = await supabase
+              .from("profiles")
+              .select("name, email")
+              .eq("id", parentComment.author_id)
+              .single();
+
+            if (!parentAuthorError && parentAuthor) {
+              parentCommentAuthor = parentAuthor.name || parentAuthor.email;
+              parentCommentAuthorEmail = parentAuthor.email;
+            }
+          }
+        }
 
         // Slack通知を送信（非同期で実行、エラーはログのみ）
         sendCommentNotification({
@@ -114,7 +138,10 @@ export async function POST(request: NextRequest) {
           commentAuthor: authorName,
           commentContent: content,
           postAuthorEmail: post.author_email || "不明",
-          postAuthorName: postAuthor?.name
+          postAuthorName: postAuthor?.name,
+          isReply: !!parent_id,
+          parentCommentAuthor: parentCommentAuthor,
+          parentCommentAuthorEmail: parentCommentAuthorEmail
         }).catch(error => {
           console.error("Failed to send Slack notification:", error);
         });

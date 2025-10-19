@@ -11,6 +11,9 @@ interface CommentNotificationData {
   commentContent: string;
   postAuthorEmail: string;
   postAuthorName?: string;
+  isReply?: boolean;
+  parentCommentAuthor?: string;
+  parentCommentAuthorEmail?: string;
 }
 
 interface DailyPost {
@@ -48,18 +51,24 @@ export async function sendCommentNotification(data: CommentNotificationData): Pr
     return false;
   }
 
-  // メンション用のテキストを生成（@ユーザー名の形式）
-  const mentionText = data.postAuthorName ? `@${data.postAuthorName}` : data.postAuthorEmail;
+  // メンション用のテキストを生成
+  // 返信コメントの場合は元のコメント投稿者にメンション、そうでなければ投稿者にメンション
+  let mentionText: string;
+  if (data.isReply && data.parentCommentAuthor) {
+    mentionText = `@${data.parentCommentAuthor}`;
+  } else {
+    mentionText = data.postAuthorName ? `@${data.postAuthorName}` : data.postAuthorEmail;
+  }
   
   const message: SlackMessage = {
     channel: channel as string,
-    text: `💬 新しいコメントが投稿されました: ${data.postTitle}`,
+    text: data.isReply ? `💬 返信コメントが投稿されました: ${data.postTitle}` : `💬 新しいコメントが投稿されました: ${data.postTitle}`,
     blocks: [
       {
         type: "header",
         text: {
           type: "plain_text",
-          text: "💬 新しいコメントが投稿されました"
+          text: data.isReply ? "💬 返信コメントが投稿されました" : "💬 新しいコメントが投稿されました"
         }
       },
       {
