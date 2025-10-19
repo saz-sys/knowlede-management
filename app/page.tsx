@@ -412,7 +412,7 @@ export default function HomePage() {
             {searchQuery.trim() ? "検索結果が見つかりませんでした。" : "該当する投稿はありません。"}
           </section>
         ) : (
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {displayPosts.map((post) => (
               <article key={post.id} className="ocean-card p-4 hover:shadow-lg transition-shadow">
                 <Link href={`/posts/${post.id}`} className="block" prefetch={true}>
